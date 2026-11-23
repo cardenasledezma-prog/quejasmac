@@ -601,7 +601,7 @@
           <span class="block text-slate-500 uppercase">Folio Oficial</span>
           <strong id="textoFolioGenerado" class="titulo-10 text-slate-900 tracking-wider select-all">ANM-Q-2026-0001</strong>
         </div>
-        <p id="detalleSyncFolio" class="text-slate-500"></p>
+        <p id="detalleSyncFolio" class="font-semibold text-slate-700">Gracias por tu apoyo MACs unidos para hacer el cambio</p>
       </div>
       <div class="bg-slate-100 border-t border-slate-200 px-3 py-2 flex justify-center gap-2">
         <button type="button" id="btnCopiarFolio" class="btn-claro">Copiar Folio</button>
@@ -1044,10 +1044,8 @@
         timestamp: Date.now()
       };
 
-      let enNube = false;
       try {
         await addDoc(collection(db, COLECCION_QUEJAS), nuevoRegistro);
-        enNube = true;
       } catch {
         nuevoRegistro.id = "local_" + Date.now();
         registros.unshift(nuevoRegistro);
@@ -1055,9 +1053,7 @@
       }
 
       document.getElementById("textoFolioGenerado").textContent = folio;
-      document.getElementById("detalleSyncFolio").textContent = enNube
-        ? "Sincronizado correctamente en la nube."
-        : "Guardado en respaldo local.";
+      document.getElementById("detalleSyncFolio").textContent = "Gracias por tu apoyo MACs unidos para hacer el cambio";
       document.getElementById("modalFolioExito").classList.remove("hidden");
 
       limpiarFormularioCompleto();
