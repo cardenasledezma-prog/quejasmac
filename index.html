@@ -141,7 +141,7 @@
 <body class="min-h-screen flex flex-col">
 
   <!-- ENCABEZADO SUPERIOR CON LOGO ANM Y ACCESO ADMIN -->
-  <header class="bg-[#1f2937] text-white border-b border-gray-700 sticky top-0 z-30 shadow-sm">
+  <header class="bg-[#1f2937] text-white border-b border-gray-700 sticky top-0 z-40 shadow-sm">
     <div class="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-2">
       <div class="flex items-center gap-2 min-w-0">
         <div class="w-8 h-8 rounded-full bg-white p-0.5 flex-shrink-0 overflow-hidden border border-gray-400">
@@ -161,7 +161,7 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-1.5 flex-shrink-0">
+      <div class="flex items-center gap-1.5 flex-shrink-0 relative z-50">
         <!-- Solo ícono de conexión con LED verde encendido si está activo -->
         <span
           id="badgeEstadoNube"
@@ -178,7 +178,7 @@
         <button id="btnAbrirLoginAdmin" type="button" class="btn-claro !bg-gray-800 !text-white !border-gray-500 hover:!bg-gray-700">
           <span>Administrador</span>
         </button>
-        <button id="btnCerrarSesionAdmin" type="button" class="hidden btn-claro !bg-gray-700 !text-white !border-gray-500">
+        <button id="btnCerrarSesionAdmin" type="button" class="hidden btn-claro !bg-gray-700 !text-white !border-gray-400 hover:!bg-gray-600">
           <span>Salir Admin</span>
         </button>
       </div>
@@ -709,6 +709,7 @@
     let registroSeleccionadoId = null;
     let registroAEliminar = null;
 
+    // Referencias DOM generales y de administración declaradas al inicio
     const dotNube = document.getElementById("dotNube");
     const badgeEstadoNube = document.getElementById("badgeEstadoNube");
     const formQueja = document.getElementById("formQueja");
@@ -722,6 +723,19 @@
     const evidenciaInput = document.getElementById("evidenciaArchivos");
     const textoArchivosSeleccionados = document.getElementById("textoArchivosSeleccionados");
     const contenedorPreviaArchivos = document.getElementById("contenedorPreviaArchivos");
+
+    const vistaCaptura = document.getElementById("vistaCaptura");
+    const vistaAdmin = document.getElementById("vistaAdmin");
+    const modalAvisoMac = document.getElementById("modalAvisoMac");
+    const modalLoginAdmin = document.getElementById("modalLoginAdmin");
+    const modalDetalleEscrito = document.getElementById("modalDetalleEscrito");
+    const modalConfirmarEliminar = document.getElementById("modalConfirmarEliminar");
+    const btnAbrirLoginAdmin = document.getElementById("btnAbrirLoginAdmin");
+    const btnCerrarSesionAdmin = document.getElementById("btnCerrarSesionAdmin");
+
+    const buscadorAdmin = document.getElementById("buscadorAdmin");
+    const filtroTipoAdmin = document.getElementById("filtroTipoAdmin");
+    const filtroLecturaAdmin = document.getElementById("filtroLecturaAdmin");
 
     function obtenerMapaLeidosLocal() {
       try {
@@ -778,6 +792,141 @@
       }
     }
 
+    function escaparHTML(texto) {
+      const div = document.createElement("div");
+      div.textContent = texto || "";
+      return div.innerHTML;
+    }
+
+    async function cambiarEstadoLectura(id, estadoLeido) {
+      const idx = registros.findIndex((x) => x.id === id);
+      if (idx !== -1) {
+        registros[idx].leido = estadoLeido;
+      }
+      guardarEstadoLeidoLocal(id, estadoLeido);
+      guardarRespaldoLocal(registros);
+      renderizarPanelAdmin();
+
+      try {
+        if (!String(id).startsWith("local_")) {
+          await updateDoc(doc(db, COLECCION_QUEJAS, id), { leido: estadoLeido });
+        }
+      } catch (err) {
+        console.warn("No se pudo actualizar estado de lectura en nube:", err);
+      }
+    }
+
+    function renderizarPanelAdmin() {
+      const noLeidosCount = registros.filter((r) => !estaLeido(r)).length;
+      document.getElementById("statNoLeidos").textContent = noLeidosCount;
+      document.getElementById("statTotal").textContent = registros.length;
+      document.getElementById("statQuejas").textContent = registros.filter((r) => r.tipo === "Queja").length;
+      document.getElementById("statComentarios").textContent = registros.filter((r) => r.tipo === "Comentario").length;
+
+      const termino = (buscadorAdmin?.value || "").trim().toLowerCase();
+      const tipoFiltro = filtroTipoAdmin?.value || "TODOS";
+      const lecturaFiltro = filtroLecturaAdmin?.value || "TODOS";
+
+      const filtrados = registros.filter((r) => {
+        if (tipoFiltro !== "TODOS" && r.tipo !== tipoFiltro) return false;
+        const regLeido = estaLeido(r);
+        if (lecturaFiltro === "NO_LEIDOS" && regLeido) return false;
+        if (lecturaFiltro === "LEIDOS" && !regLeido) return false;
+
+        if (!termino) return true;
+        return [r.folio, r.tipo, r.nombre, r.telefono, r.estado, r.distrito, r.modulo, r.descripcion, r.fecha, r.anonimo ? "anonimo" : ""]
+          .join(" ")
+          .toLowerCase()
+          .includes(termino);
+      });
+
+      const tbody = document.getElementById("tablaRegistrosBody");
+      if (!tbody) return;
+
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">Sin registros que coincidan.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtrados
+        .map((r) => {
+          const regLeido = estaLeido(r);
+          const claseFila = regLeido
+            ? "hover:bg-slate-50 align-top bg-white"
+            : "hover:bg-slate-100 align-top bg-slate-100/90 border-l-4 border-l-slate-900";
+
+          const badgeLectura = regLeido
+            ? `<span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 uppercase mb-0.5">Leído</span>`
+            : `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-900 text-white font-bold uppercase mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-white"></span>Nuevo / No leído</span>`;
+
+          const badgeTipo =
+            r.tipo === "Queja"
+              ? `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-white font-bold uppercase">Queja</span>`
+              : `<span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 border border-slate-300 font-bold uppercase">Comentario</span>`;
+
+          const badgeAnonimo = r.anonimo
+            ? `<span class="mt-0.5 inline-block px-1 py-0.2 rounded bg-slate-200 text-slate-800 border border-slate-300 font-bold uppercase">Anónimo en Excel</span>`
+            : "";
+
+          const numEv = Array.isArray(r.evidencias) ? r.evidencias.length : 0;
+
+          return `
+            <tr class="${claseFila}">
+              <td class="p-2 whitespace-nowrap">
+                ${badgeLectura}
+                <strong class="block text-slate-900">${escaparHTML(r.folio)}</strong>
+              </td>
+              <td class="p-2 whitespace-nowrap">${badgeTipo}</td>
+              <td class="p-2 text-slate-600 whitespace-nowrap">${escaparHTML(r.fecha)}<br/>${escaparHTML(r.hora)}</td>
+              <td class="p-2">
+                <strong class="text-slate-900 block">${escaparHTML(r.nombre)}</strong>
+                <span class="text-slate-600 block">Tel: ${escaparHTML(r.telefono)}</span>
+                ${badgeAnonimo}
+              </td>
+              <td class="p-2"><strong class="text-slate-800 block">${escaparHTML(r.estado)}</strong><span class="text-slate-600 block">${escaparHTML(r.distrito)}</span><span class="text-slate-500 block">${escaparHTML(r.modulo)}</span></td>
+              <td class="p-2 max-w-xs"><p class="line-clamp-2 ${regLeido ? "text-slate-700" : "text-slate-950 font-semibold"}">${escaparHTML(r.descripcion)}</p></td>
+              <td class="p-2 text-center whitespace-nowrap">${numEv > 0 ? `<span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-semibold">${numEv} archivo(s)</span>` : `<span class="text-slate-400">Ninguno</span>`}</td>
+              <td class="p-2 text-right whitespace-nowrap space-x-1">
+                <button type="button" data-ver="${r.id}" class="btn-grafito !py-1 !px-2">${regLeido ? "Ver" : "Leer Ahora"}</button>
+                <button type="button" data-borrar="${r.id}" class="btn-claro !py-1 !px-2">Eliminar</button>
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      tbody.querySelectorAll("[data-ver]").forEach((btn) => btn.addEventListener("click", () => abrirVisor(btn.getAttribute("data-ver"))));
+      tbody.querySelectorAll("[data-borrar]").forEach((btn) => btn.addEventListener("click", () => pedirBorrar(btn.getAttribute("data-borrar"))));
+    }
+
+    function activarVistaAdmin() {
+      try { sessionStorage.setItem(SESSION_KEY_ADMIN, "1"); } catch {}
+      vistaCaptura.classList.add("hidden");
+      vistaCaptura.style.display = "none";
+      vistaAdmin.classList.remove("hidden");
+      vistaAdmin.style.display = "block";
+      btnAbrirLoginAdmin.classList.add("hidden");
+      btnCerrarSesionAdmin.classList.remove("hidden");
+      renderizarPanelAdmin();
+    }
+
+    function desactivarVistaAdmin() {
+      try { sessionStorage.removeItem(SESSION_KEY_ADMIN); } catch {}
+      modalLoginAdmin.classList.add("hidden");
+      modalDetalleEscrito.classList.add("hidden");
+      modalConfirmarEliminar.classList.add("hidden");
+      modalAvisoMac.classList.add("hidden");
+
+      vistaAdmin.classList.add("hidden");
+      vistaAdmin.style.display = "none";
+      vistaCaptura.classList.remove("hidden");
+      vistaCaptura.style.display = "block";
+
+      btnCerrarSesionAdmin.classList.add("hidden");
+      btnAbrirLoginAdmin.classList.remove("hidden");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
     function iniciarEscuchaFirestore() {
       try {
         const q = query(collection(db, COLECCION_QUEJAS), orderBy("timestamp", "desc"));
@@ -807,7 +956,14 @@
       }
     }
 
+    // Inicialización segura tras declarar constantes y funciones
+    registros = cargarRespaldoLocal();
     iniciarEscuchaFirestore();
+    try {
+      if (sessionStorage.getItem(SESSION_KEY_ADMIN) === "1") {
+        activarVistaAdmin();
+      }
+    } catch {}
 
     const btnRefrescarManual = document.getElementById("btnRefrescarManual");
     const iconoRefrescar = document.getElementById("iconoRefrescar");
@@ -855,7 +1011,6 @@
       }
     });
 
-    const modalAvisoMac = document.getElementById("modalAvisoMac");
     function abrirAvisoMac() { modalAvisoMac.classList.remove("hidden"); }
     function cerrarAvisoMac() { modalAvisoMac.classList.add("hidden"); }
 
@@ -1071,33 +1226,6 @@
       document.getElementById("modalFolioExito").classList.add("hidden");
     });
 
-    const vistaCaptura = document.getElementById("vistaCaptura");
-    const vistaAdmin = document.getElementById("vistaAdmin");
-    const modalLoginAdmin = document.getElementById("modalLoginAdmin");
-    const btnAbrirLoginAdmin = document.getElementById("btnAbrirLoginAdmin");
-    const btnCerrarSesionAdmin = document.getElementById("btnCerrarSesionAdmin");
-
-    function activarVistaAdmin() {
-      sessionStorage.setItem(SESSION_KEY_ADMIN, "1");
-      vistaCaptura.classList.add("hidden");
-      vistaAdmin.classList.remove("hidden");
-      btnAbrirLoginAdmin.classList.add("hidden");
-      btnCerrarSesionAdmin.classList.remove("hidden");
-      renderizarPanelAdmin();
-    }
-
-    function desactivarVistaAdmin() {
-      sessionStorage.removeItem(SESSION_KEY_ADMIN);
-      vistaAdmin.classList.add("hidden");
-      vistaCaptura.classList.remove("hidden");
-      btnCerrarSesionAdmin.classList.add("hidden");
-      btnAbrirLoginAdmin.classList.remove("hidden");
-    }
-
-    if (sessionStorage.getItem(SESSION_KEY_ADMIN) === "1") {
-      activarVistaAdmin();
-    }
-
     btnAbrirLoginAdmin.addEventListener("click", () => {
       document.getElementById("claveAdminInput").value = "";
       document.getElementById("errorLoginAdmin").classList.add("hidden");
@@ -1119,11 +1247,11 @@
       }
     });
 
-    btnCerrarSesionAdmin.addEventListener("click", desactivarVistaAdmin);
-
-    const buscadorAdmin = document.getElementById("buscadorAdmin");
-    const filtroTipoAdmin = document.getElementById("filtroTipoAdmin");
-    const filtroLecturaAdmin = document.getElementById("filtroLecturaAdmin");
+    btnCerrarSesionAdmin.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      desactivarVistaAdmin();
+    });
 
     buscadorAdmin.addEventListener("input", renderizarPanelAdmin);
     filtroTipoAdmin.addEventListener("change", renderizarPanelAdmin);
@@ -1136,112 +1264,6 @@
       renderizarPanelAdmin();
     });
 
-    function escaparHTML(texto) {
-      const div = document.createElement("div");
-      div.textContent = texto || "";
-      return div.innerHTML;
-    }
-
-    async function cambiarEstadoLectura(id, estadoLeido) {
-      const idx = registros.findIndex((x) => x.id === id);
-      if (idx !== -1) {
-        registros[idx].leido = estadoLeido;
-      }
-      guardarEstadoLeidoLocal(id, estadoLeido);
-      guardarRespaldoLocal(registros);
-      renderizarPanelAdmin();
-
-      try {
-        if (!String(id).startsWith("local_")) {
-          await updateDoc(doc(db, COLECCION_QUEJAS, id), { leido: estadoLeido });
-        }
-      } catch (err) {
-        console.warn("No se pudo actualizar estado de lectura en nube:", err);
-      }
-    }
-
-    function renderizarPanelAdmin() {
-      const noLeidosCount = registros.filter((r) => !estaLeido(r)).length;
-      document.getElementById("statNoLeidos").textContent = noLeidosCount;
-      document.getElementById("statTotal").textContent = registros.length;
-      document.getElementById("statQuejas").textContent = registros.filter((r) => r.tipo === "Queja").length;
-      document.getElementById("statComentarios").textContent = registros.filter((r) => r.tipo === "Comentario").length;
-
-      const termino = buscadorAdmin.value.trim().toLowerCase();
-      const tipoFiltro = filtroTipoAdmin.value;
-      const lecturaFiltro = filtroLecturaAdmin.value;
-
-      const filtrados = registros.filter((r) => {
-        if (tipoFiltro !== "TODOS" && r.tipo !== tipoFiltro) return false;
-        const regLeido = estaLeido(r);
-        if (lecturaFiltro === "NO_LEIDOS" && regLeido) return false;
-        if (lecturaFiltro === "LEIDOS" && !regLeido) return false;
-
-        if (!termino) return true;
-        return [r.folio, r.tipo, r.nombre, r.telefono, r.estado, r.distrito, r.modulo, r.descripcion, r.fecha, r.anonimo ? "anonimo" : ""]
-          .join(" ")
-          .toLowerCase()
-          .includes(termino);
-      });
-
-      const tbody = document.getElementById("tablaRegistrosBody");
-      if (filtrados.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-500">Sin registros que coincidan.</td></tr>`;
-        return;
-      }
-
-      tbody.innerHTML = filtrados
-        .map((r) => {
-          const regLeido = estaLeido(r);
-          const claseFila = regLeido
-            ? "hover:bg-slate-50 align-top bg-white"
-            : "hover:bg-slate-100 align-top bg-slate-100/90 border-l-4 border-l-slate-900";
-
-          const badgeLectura = regLeido
-            ? `<span class="inline-block px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 border border-slate-200 uppercase mb-0.5">Leído</span>`
-            : `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-900 text-white font-bold uppercase mb-0.5"><span class="w-1.5 h-1.5 rounded-full bg-white"></span>Nuevo / No leído</span>`;
-
-          const badgeTipo =
-            r.tipo === "Queja"
-              ? `<span class="px-1.5 py-0.5 rounded bg-slate-800 text-white font-bold uppercase">Queja</span>`
-              : `<span class="px-1.5 py-0.5 rounded bg-slate-200 text-slate-800 border border-slate-300 font-bold uppercase">Comentario</span>`;
-
-          const badgeAnonimo = r.anonimo
-            ? `<span class="mt-0.5 inline-block px-1 py-0.2 rounded bg-slate-200 text-slate-800 border border-slate-300 font-bold uppercase">Anónimo en Excel</span>`
-            : "";
-
-          const numEv = Array.isArray(r.evidencias) ? r.evidencias.length : 0;
-
-          return `
-            <tr class="${claseFila}">
-              <td class="p-2 whitespace-nowrap">
-                ${badgeLectura}
-                <strong class="block text-slate-900">${escaparHTML(r.folio)}</strong>
-              </td>
-              <td class="p-2 whitespace-nowrap">${badgeTipo}</td>
-              <td class="p-2 text-slate-600 whitespace-nowrap">${escaparHTML(r.fecha)}<br/>${escaparHTML(r.hora)}</td>
-              <td class="p-2">
-                <strong class="text-slate-900 block">${escaparHTML(r.nombre)}</strong>
-                <span class="text-slate-600 block">Tel: ${escaparHTML(r.telefono)}</span>
-                ${badgeAnonimo}
-              </td>
-              <td class="p-2"><strong class="text-slate-800 block">${escaparHTML(r.estado)}</strong><span class="text-slate-600 block">${escaparHTML(r.distrito)}</span><span class="text-slate-500 block">${escaparHTML(r.modulo)}</span></td>
-              <td class="p-2 max-w-xs"><p class="line-clamp-2 ${regLeido ? "text-slate-700" : "text-slate-950 font-semibold"}">${escaparHTML(r.descripcion)}</p></td>
-              <td class="p-2 text-center whitespace-nowrap">${numEv > 0 ? `<span class="px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 font-semibold">${numEv} archivo(s)</span>` : `<span class="text-slate-400">Ninguno</span>`}</td>
-              <td class="p-2 text-right whitespace-nowrap space-x-1">
-                <button type="button" data-ver="${r.id}" class="btn-grafito !py-1 !px-2">${regLeido ? "Ver" : "Leer Ahora"}</button>
-                <button type="button" data-borrar="${r.id}" class="btn-claro !py-1 !px-2">Eliminar</button>
-              </td>
-            </tr>
-          `;
-        })
-        .join("");
-
-      tbody.querySelectorAll("[data-ver]").forEach((btn) => btn.addEventListener("click", () => abrirVisor(btn.getAttribute("data-ver"))));
-      tbody.querySelectorAll("[data-borrar]").forEach((btn) => btn.addEventListener("click", () => pedirBorrar(btn.getAttribute("data-borrar"))));
-    }
-
-    const modalDetalleEscrito = document.getElementById("modalDetalleEscrito");
     function abrirVisor(id) {
       const reg = registros.find((x) => x.id === id);
       if (!reg) return;
@@ -1312,7 +1334,6 @@
       }
     });
 
-    const modalConfirmarEliminar = document.getElementById("modalConfirmarEliminar");
     function pedirBorrar(id) {
       const reg = registros.find((x) => x.id === id);
       if (!reg) return;
