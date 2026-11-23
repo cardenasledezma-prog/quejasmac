@@ -162,10 +162,19 @@
       </div>
 
       <div class="flex items-center gap-1.5 flex-shrink-0">
-        <span id="badgeEstadoNube" class="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-800 border border-gray-600 text-gray-200">
-          <span id="dotNube" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-          <span id="txtNube">Conectando...</span>
+        <!-- Solo ícono de conexión con LED verde encendido si está activo -->
+        <span
+          id="badgeEstadoNube"
+          title="Estado de conexión"
+          aria-label="Estado de conexión"
+          class="inline-flex items-center justify-center p-1.5 rounded bg-gray-800 border border-gray-600 text-gray-200 relative"
+        >
+          <svg class="w-3.5 h-3.5 text-gray-200" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+          </svg>
+          <span id="dotNube" class="w-2 h-2 rounded-full bg-amber-400 ml-1 shadow-sm"></span>
         </span>
+
         <button id="btnAbrirLoginAdmin" type="button" class="btn-claro !bg-gray-800 !text-white !border-gray-500 hover:!bg-gray-700">
           <span>Administrador</span>
         </button>
@@ -354,7 +363,7 @@
                   </div>
                   <div>
                     <span class="font-bold text-slate-900 block uppercase">Queja</span>
-                    <span class="text-slate-600 block">Inconformidad por mala atención, retrasos, fallas técnicas o conducta indebida.</span>
+                    <span class="text-slate-600 block">Reporte por maltrato físico o psicológico (de superiores o compañeros), malas condiciones en las instalaciones, o imputación injusta de responsabilidades.</span>
                   </div>
                 </label>
               </div>
@@ -393,7 +402,7 @@
               id="descripcionReporta"
               rows="4"
               required
-              placeholder="Anote el nombre completo y cargo de la persona reportada (VE, VRFE, RM u otro compañero), fecha, hora aproximada, clave del módulo o área y detalle claro de la queja..."
+              placeholder="Especifique el nombre completo y cargo de los involucrados (VE, VRFE, RM o compañeros), si se trata de maltrato físico/psicológico, malas instalaciones o imputación injusta de culpas, así como fecha, hora y detalle claro de los hechos..."
               class="input-cedula resize-y"
             ></textarea>
           </div>
@@ -547,7 +556,7 @@
   <footer class="bg-white border-t border-slate-200 py-2 px-3 mt-4">
     <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-slate-500">
       <span>Sistema Integral de Quejas ANM · Apoyo Nacional MACs</span>
-      <span>Firebase Cloud Firestore · GitHub Pages Ready</span>
+      <span>GitHub Pages Ready</span>
     </div>
   </footer>
 
@@ -563,9 +572,9 @@
           Indicaciones para el personal de Módulos de Atención Ciudadana antes de redactar:
         </p>
         <ul class="list-disc pl-4 space-y-1">
-          <li><strong>Nombres completos y cargo:</strong> Es <strong>IMPORTANTE</strong> tener los datos claros y completos de la persona o personas reportadas (nombre completo y función, ya sea <strong>Vocal Ejecutivo (VE)</strong>, <strong>Vocal del Registro Federal de Electores (VRFE)</strong>, <strong>Responsable de Módulo (RM)</strong> o demás compañeros).</li>
-          <li><strong>Hechos claros y verificables:</strong> Describa bien la queja o situación ocurrida, anotando <strong>fecha</strong>, <strong>hora aproximada</strong>, <strong>clave del módulo o área</strong> y el detalle puntual de lo sucedido.</li>
-          <li><strong>Resguardo de información y lenguaje:</strong> Cuide su lenguaje al expresar su problema y redacte de forma objetiva y clara para facilitar el seguimiento.</li>
+          <li><strong>Nombres completos y cargo:</strong> Es <strong>IMPORTANTE</strong> registrar los nombres completos y cargos de las personas involucradas, ya sea <strong>Vocal Ejecutivo (VE)</strong>, <strong>Vocal del Registro Federal de Electores (VRFE)</strong>, <strong>Responsable de Módulo (RM)</strong> o compañeros de trabajo.</li>
+          <li><strong>Motivo específico de la queja:</strong> Especifique claramente si se trata de <strong>maltrato físico o psicológico</strong> (por personal de mayor jerarquía o compañeros), <strong>malas condiciones en las instalaciones</strong> del módulo, o <strong>señalamientos injustos de culpa</strong> sobre hechos en los que no tuvo responsabilidad.</li>
+          <li><strong>Hechos claros y verificables:</strong> Anote <strong>fecha</strong>, <strong>hora aproximada</strong>, <strong>clave del módulo o área</strong> y el relato puntual de lo sucedido, cuidando su lenguaje al expresar el problema.</li>
           <li><strong>Evidencia de apoyo:</strong> Adjunte captura de pantalla, fotografía o video corto si respalda el reporte.</li>
         </ul>
       </div>
@@ -701,7 +710,7 @@
     let registroAEliminar = null;
 
     const dotNube = document.getElementById("dotNube");
-    const txtNube = document.getElementById("txtNube");
+    const badgeEstadoNube = document.getElementById("badgeEstadoNube");
     const formQueja = document.getElementById("formQueja");
     const nombreInput = document.getElementById("nombreReporta");
     const checkAnonimo = document.getElementById("checkAnonimo");
@@ -736,11 +745,14 @@
       return Boolean(mapa[reg.id]);
     }
 
-    function actualizarEstadoConexion(online, mensaje) {
+    function actualizarEstadoConexion(online, tituloEstado = "") {
       dotNube.className = online
-        ? "w-1.5 h-1.5 rounded-full bg-emerald-400"
-        : "w-1.5 h-1.5 rounded-full bg-amber-400";
-      txtNube.textContent = mensaje;
+        ? "w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.9)] ml-1"
+        : "w-2 h-2 rounded-full bg-amber-400 ml-1";
+      if (tituloEstado) {
+        badgeEstadoNube.setAttribute("title", tituloEstado);
+        badgeEstadoNube.setAttribute("aria-label", tituloEstado);
+      }
     }
 
     function cargarRespaldoLocal() {
@@ -778,19 +790,19 @@
             });
             registros = listaNube;
             guardarRespaldoLocal(registros);
-            actualizarEstadoConexion(true, "Firebase Activo");
+            actualizarEstadoConexion(true, "Conexión activa");
             actualizarHoraSyncTexto("Automática");
             renderizarPanelAdmin();
           },
           () => {
             registros = cargarRespaldoLocal();
-            actualizarEstadoConexion(false, "Respaldo Local");
+            actualizarEstadoConexion(false, "Respaldo local");
             renderizarPanelAdmin();
           }
         );
       } catch {
         registros = cargarRespaldoLocal();
-        actualizarEstadoConexion(false, "Respaldo Local");
+        actualizarEstadoConexion(false, "Respaldo local");
         renderizarPanelAdmin();
       }
     }
@@ -815,7 +827,7 @@
         });
         registros = listaNube;
         guardarRespaldoLocal(registros);
-        actualizarEstadoConexion(true, "Firebase Activo");
+        actualizarEstadoConexion(true, "Conexión activa");
         actualizarHoraSyncTexto("Manual");
         renderizarPanelAdmin();
       } catch (err) {
@@ -1044,7 +1056,7 @@
 
       document.getElementById("textoFolioGenerado").textContent = folio;
       document.getElementById("detalleSyncFolio").textContent = enNube
-        ? "Sincronizado en Cloud Firestore (quejasmac)."
+        ? "Sincronizado correctamente en la nube."
         : "Guardado en respaldo local.";
       document.getElementById("modalFolioExito").classList.remove("hidden");
 
@@ -1265,8 +1277,8 @@
           <div><span class="text-slate-500 block">Folio:</span><strong>${escaparHTML(reg.folio)}</strong></div>
           <div><span class="text-slate-500 block">Tipo:</span><strong>${escaparHTML(reg.tipo)}</strong></div>
           <div><span class="text-slate-500 block">Fecha/Hora:</span><strong>${escaparHTML(reg.fecha)} ${escaparHTML(reg.hora)}</strong></div>
-          <div><span class="text-slate-500 block">Reporta (Firebase):</span><strong>${escaparHTML(reg.nombre)}</strong></div>
-          <div><span class="text-slate-500 block">Teléfono (Firebase):</span><strong>${escaparHTML(reg.telefono)}</strong></div>
+          <div><span class="text-slate-500 block">Reporta:</span><strong>${escaparHTML(reg.nombre)}</strong></div>
+          <div><span class="text-slate-500 block">Teléfono:</span><strong>${escaparHTML(reg.telefono)}</strong></div>
           <div><span class="text-slate-500 block">Solicitud Anónima:</span><strong>${reg.anonimo ? "SÍ (Sale ANÓNIMO en Excel)" : "No"}</strong></div>
           <div><span class="text-slate-500 block">Estado:</span><strong>${escaparHTML(reg.estado)}</strong></div>
           <div><span class="text-slate-500 block">Distrito:</span><strong>${escaparHTML(reg.distrito)}</strong></div>
