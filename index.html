@@ -1,1533 +1,1235 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Integral de Quejas ANM - Apoyo Nacional MACs</title>
-    <!-- Tailwind CSS para estructura responsiva -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- SheetJS (XLSX) para exportación a Excel en múltiples hojas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <!-- FontAwesome para iconografía institucional limpia -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Tipografía Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1f2937" />
+  <title>Sistema Integral de Quejas ANM | Apoyo Nacional MACs</title>
 
-    <style>
-        /* ==========================================================================
-           REGLAS ESTRICTAS DE TIPOGRAFÍA Y PALETA INSTITUCIONAL NEUTRA (GRIS ACERO / PLATA)
-           - Texto general, etiquetas, inputs, botones y tablas: 8px
-           - Títulos y encabezados: 10px
-           ========================================================================== */
-        :root {
-            --color-primario: #1f2937;       /* Gris grafito oscuro */
-            --color-primario-hover: #111827; /* Grafito profundo */
-            --color-secundario: #475569;     /* Gris pizarra */
-            --color-plata: #94a3b8;          /* Plata metálico */
-            --color-fondo: #f8fafc;          /* Neutro claro */
-            --color-borde: #cbd5e1;          /* Borde gris acero */
-            --color-texto: #1e293b;
-            --color-texto-suave: #475569;
-        }
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            font-size: 8px !important;
-            line-height: 1.4;
-        }
+  <!-- SheetJS (Exportación a Excel .xlsx) -->
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
-        /* Títulos y encabezados estrictamente a 10px */
-        h1, h2, h3, h4, h5, h6,
-        .titulo-10,
-        .card-header-title,
-        .modal-title {
-            font-size: 10px !important;
-            font-weight: 700 !important;
-            line-height: 1.3 !important;
-            letter-spacing: 0.02em;
-        }
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
-        html, body {
-            background-color: var(--color-fondo);
-            color: var(--color-texto);
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            max-width: 100vw;
-            overflow-x: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+  <style>
+    /* Regla tipográfica estricta: 8px texto general, 10px títulos y encabezados */
+    * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      box-sizing: border-box;
+    }
 
-        /* Controles de formulario estilizados a escala 8px (cómodos en móvil y escritorio) */
-        input[type="text"],
-        input[type="tel"],
-        input[type="password"],
-        select,
-        textarea {
-            font-size: 8px !important;
-            padding: 7px 9px;
-            border: 1px solid var(--color-borde);
-            border-radius: 5px;
-            background-color: #FFFFFF;
-            color: var(--color-texto);
-            width: 100%;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
+    body, p, span, div, label, input, select, textarea, button, td, th, li, a {
+      font-size: 8px !important;
+      line-height: 1.45 !important;
+    }
 
-        input:focus,
-        select:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--color-primario);
-            box-shadow: 0 0 0 2px rgba(31, 41, 55, 0.14);
-        }
+    h1, h2, h3, h4, .titulo-10 {
+      font-size: 10px !important;
+      line-height: 1.35 !important;
+      font-weight: 700 !important;
+      letter-spacing: 0.02em;
+    }
 
-        label {
-            font-size: 8px !important;
-            font-weight: 600;
-            color: #334155;
-            display: block;
-            margin-bottom: 3px;
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-        }
+    /* Paleta Institucional Neutra (Gris Grafito, Pizarra y Plata Metálico) */
+    :root {
+      --anm-grafito: #1f2937;
+      --anm-grafito-oscuro: #111827;
+      --anm-pizarra: #374151;
+      --anm-acero: #4b5563;
+      --anm-plata: #9ca3af;
+      --anm-fondo: #f3f4f6;
+    }
 
-        /* Botones institucionales neutros */
-        .btn-institucional {
-            background-color: var(--color-primario);
-            color: #FFFFFF;
-            font-size: 8px !important;
-            font-weight: 600;
-            padding: 7px 12px;
-            border-radius: 5px;
-            border: 1px solid #111827;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: background-color 0.2s, transform 0.1s;
-        }
+    body {
+      background-color: var(--anm-fondo);
+      color: #1f2937;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-        .btn-institucional:hover {
-            background-color: var(--color-primario-hover);
-        }
+    .bg-anm-grafito { background-color: var(--anm-grafito); }
+    .bg-anm-pizarra { background-color: var(--anm-pizarra); }
+    .text-anm-grafito { color: var(--anm-grafito); }
+    .border-anm-plata { border-color: #d1d5db; }
 
-        .btn-institucional:active {
-            transform: scale(0.99);
-        }
+    .input-anm {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      padding: 6px 8px;
+      background-color: #ffffff;
+      color: #111827;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
 
-        .btn-secundario {
-            background-color: #FFFFFF;
-            color: var(--color-texto);
-            border: 1px solid var(--color-borde);
-            font-size: 8px !important;
-            font-weight: 600;
-            padding: 6px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            transition: all 0.2s;
-        }
+    .input-anm:focus {
+      outline: none;
+      border-color: #374151;
+      box-shadow: 0 0 0 2px rgba(55, 65, 81, 0.15);
+    }
 
-        .btn-secundario:hover {
-            background-color: #f1f5f9;
-            border-color: #94a3b8;
-        }
+    .btn-anm-primary {
+      background-color: #1f2937;
+      color: #ffffff;
+      border: 1px solid #111827;
+      border-radius: 4px;
+      padding: 7px 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
 
-        .btn-excel {
-            background-color: #1D6F42;
-            color: #FFFFFF;
-            font-size: 8px !important;
-            font-weight: 600;
-            padding: 7px 12px;
-            border-radius: 5px;
-            border: none;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: background-color 0.2s;
-        }
+    .btn-anm-primary:hover {
+      background-color: #111827;
+    }
 
-        .btn-excel:hover {
-            background-color: #155331;
-        }
+    .btn-anm-secondary {
+      background-color: #ffffff;
+      color: #1f2937;
+      border: 1px solid #9ca3af;
+      border-radius: 4px;
+      padding: 6px 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.15s ease;
+    }
 
-        /* Selector visual de Queja vs Comentario */
-        .tipo-radio-card {
-            border: 1px solid var(--color-borde);
-            border-radius: 6px;
-            padding: 8px 10px;
-            cursor: pointer;
-            background-color: #FFFFFF;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+    .btn-anm-secondary:hover {
+      background-color: #f3f4f6;
+    }
 
-        .tipo-radio-card:hover {
-            border-color: var(--color-secundario);
-            background-color: #f8fafc;
-        }
-
-        input[type="radio"]:checked + .tipo-radio-card.card-queja {
-            border-color: #991B1B;
-            background-color: #FEF2F2;
-            box-shadow: 0 0 0 1px #991B1B;
-        }
-
-        input[type="radio"]:checked + .tipo-radio-card.card-comentario {
-            border-color: #1E40AF;
-            background-color: #EFF6FF;
-            box-shadow: 0 0 0 1px #1E40AF;
-        }
-
-        /* Ventana Flotante (Modal / Alerta MAC) */
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            background-color: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(2px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            padding: 10px;
-        }
-
-        .modal-backdrop.active {
-            display: flex;
-            animation: fadeIn 0.2s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        /* Tablas de Administrador */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        th {
-            background-color: #f1f5f9;
-            color: #334155;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 6px 8px;
-            text-align: left;
-            border-bottom: 1px solid #cbd5e1;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #e2e8f0;
-            vertical-align: top;
-        }
-
-        tr:hover td {
-            background-color: #f8fafc;
-        }
-
-        /* Badges */
-        .badge-queja {
-            background-color: #FEE2E2;
-            color: #991B1B;
-            border: 1px solid #FCA5A5;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: 700;
-            display: inline-block;
-        }
-
-        .badge-comentario {
-            background-color: #DBEAFE;
-            color: #1E40AF;
-            border: 1px solid #93C5FD;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-weight: 700;
-            display: inline-block;
-        }
-
-        /* Scrollbar discreto */
-        ::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 3px;
-        }
-    </style>
+    /* Scrollbar discreto */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #e5e7eb;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #9ca3af;
+      border-radius: 3px;
+    }
+  </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col">
 
-    <!-- ==========================================================================
-         ENCABEZADO INSTITUCIONAL NEUTRO (GRIS GRAFITO / PLATA) CON LOGO ANM
-         ========================================================================== -->
-    <header class="bg-gradient-to-r from-[#1f2937] via-[#334155] to-[#1f2937] text-white shadow-sm border-b-2 border-[#94a3b8]">
-        <div class="max-w-6xl mx-auto px-3 sm:px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
-            <!-- Identidad Visual ANM + Título -->
-            <div class="flex items-center gap-2.5 min-w-0">
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white p-0.5 border border-slate-300 shadow-sm shrink-0 overflow-hidden flex items-center justify-center">
-                    <img src="image_d0ba41.jpg"
-                         onerror="this.onerror=null; this.src='https://placehold.co/80x80/334155/ffffff?text=ANM';"
-                         alt="Logotipo ANM - Apoyo Nacional MACs"
-                         class="w-full h-full rounded-full object-cover">
-                </div>
-                <div class="min-w-0">
-                    <h1 class="titulo-10 text-white tracking-wide uppercase truncate">
-                        Sistema Integral de Quejas ANM
-                    </h1>
-                    <p class="text-slate-300 truncate">
-                        Apoyo Nacional MACs — Recepción Confidencial de Quejas y Comentarios
-                    </p>
-                </div>
-            </div>
-
-            <!-- Controles de Navegación / Acceso Administrador (Responsivos en celular) -->
-            <div class="flex items-center gap-1.5 sm:gap-2 ml-auto sm:ml-0">
-                <span id="badge-modo-conexion" class="hidden sm:inline-flex px-2 py-1 rounded bg-slate-800/80 text-slate-200 border border-slate-600 items-center gap-1">
-                    <i class="fa-solid fa-hard-drive text-slate-400"></i>
-                    <span>Modo Local</span>
-                </span>
-
-                <button id="btn-vista-publica" onclick="cambiarVista('publica')" class="hidden btn-secundario py-1.5 px-2.5">
-                    <i class="fa-solid fa-file-pen"></i> <span>Captura</span>
-                </button>
-
-                <button id="btn-abrir-login" onclick="abrirModalLogin()" class="bg-slate-700/80 hover:bg-slate-600 text-white border border-slate-400/50 px-2.5 py-1.5 rounded flex items-center gap-1.5 transition shrink-0">
-                    <i class="fa-solid fa-lock text-slate-300"></i>
-                    <span>Acceso Administrador</span>
-                </button>
-
-                <button id="btn-cerrar-sesion" onclick="cerrarSesionAdmin()" class="hidden bg-slate-900 hover:bg-black text-white border border-slate-500 px-2.5 py-1.5 rounded flex items-center gap-1.5 transition shrink-0">
-                    <i class="fa-solid fa-right-from-bracket text-slate-300"></i>
-                    <span>Salir Admin</span>
-                </button>
-            </div>
+  <!-- BARRA SUPERIOR INSTITUCIONAL -->
+  <header class="bg-anm-grafito text-white border-b border-gray-700 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-5xl mx-auto px-3 py-2 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-full bg-white p-0.5 flex-shrink-0 overflow-hidden border border-gray-400 shadow-inner">
+          <img
+            src="image_d0ba41.jpg"
+            alt="Logo ANM Apoyo Nacional MACs"
+            class="w-full h-full object-cover rounded-full"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+          />
+          <div class="hidden w-full h-full rounded-full bg-gray-800 text-white items-center justify-center font-bold">
+            ANM
+          </div>
         </div>
-    </header>
+        <div class="min-w-0">
+          <h1 class="titulo-10 text-white truncate uppercase">Sistema Integral de Quejas ANM</h1>
+          <p class="text-gray-300 truncate">Apoyo Nacional MACs · Atención y Seguimiento</p>
+        </div>
+      </div>
 
-    <!-- ==========================================================================
-         CONTENEDOR PRINCIPAL
-         ========================================================================== -->
-    <main class="flex-grow max-w-6xl w-full mx-auto px-3 sm:px-4 py-3 sm:py-4">
+      <div class="flex items-center gap-1.5 flex-shrink-0">
+        <span id="badgeEstadoNube" class="inline-flex items-center gap-1 px-2 py-1 rounded bg-gray-800 border border-gray-600 text-gray-200">
+          <span id="dotNube" class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+          <span id="txtNube">Conectando...</span>
+        </span>
+        <button id="btnAbrirLoginAdmin" type="button" class="btn-anm-secondary !bg-gray-800 !text-white !border-gray-500 hover:!bg-gray-700">
+          Acceso Admin
+        </button>
+        <button id="btnCerrarSesionAdmin" type="button" class="hidden btn-anm-secondary !bg-gray-700 !text-gray-100 !border-gray-500">
+          Salir Admin
+        </button>
+      </div>
+    </div>
+  </header>
 
-        <!-- ======================================================================
-             VISTA 1: CAPTURA PÚBLICA / PERSONAL MAC (SIN ACCESO A REPORTES PREVIOS)
-             ====================================================================== -->
-        <section id="vista-publica" class="max-w-3xl mx-auto">
-            <!-- Aviso de Privacidad y Confidencialidad -->
-            <div class="bg-white border-l-4 border-[#334155] border-t border-r border-b border-slate-200 rounded shadow-sm p-3 mb-3 flex items-start gap-2.5">
-                <i class="fa-solid fa-shield-halved text-[#334155] mt-0.5 shrink-0" style="font-size: 11px !important;"></i>
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 max-w-5xl w-full mx-auto px-3 py-3">
+
+    <!-- VISTA 1: FORMULARIO DE CAPTURA CIUDADANA / PERSONAL MAC (SIN ACCESO A OTROS REGISTROS) -->
+    <section id="vistaCaptura" class="max-w-2xl mx-auto">
+      <div class="bg-white border border-gray-300 rounded-md shadow-sm overflow-hidden">
+        <div class="bg-gray-100 border-b border-gray-300 px-3 py-2 flex items-center justify-between">
+          <div>
+            <h2 class="titulo-10 text-gray-800 uppercase">Registro de Queja o Comentario</h2>
+            <p class="text-gray-500">Complete todos los campos obligatorios para generar su folio oficial de seguimiento.</p>
+          </div>
+          <span class="px-2 py-0.5 rounded bg-gray-200 text-gray-700 font-semibold border border-gray-300">
+            USO CONFIDENCIAL
+          </span>
+        </div>
+
+        <form id="formQueja" class="p-3 space-y-3" novalidate>
+          <!-- Tipo de registro -->
+          <div>
+            <label class="block font-semibold text-gray-700 mb-1">1. Tipo de Reporte *</label>
+            <div class="grid grid-cols-2 gap-2">
+              <label class="flex items-center gap-2 p-2 border border-gray-300 rounded cursor-pointer hover:bg-gray-50 has-[:checked]:border-gray-800 has-[:checked]:bg-gray-100">
+                <input type="radio" name="tipoRegistro" value="Queja" class="accent-gray-800" checked />
                 <div>
-                    <h2 class="titulo-10 text-[#1f2937] uppercase mb-0.5">Aviso de Privacidad y Registro Seguro ANM</h2>
-                    <p class="text-slate-600">
-                        Este portal garantiza la confidencialidad de su reporte. Por seguridad y protección de datos personales, los usuarios y capturistas no tienen acceso a visualizar quejas o comentarios registrados previamente. Al concluir el envío recibirá un folio único secuencial de seguimiento.
-                    </p>
+                  <span class="font-bold text-gray-900 block">QUEJA</span>
+                  <span class="text-gray-500">Inconformidad, incidencia o falla operativa</span>
                 </div>
-            </div>
-
-            <!-- Tarjeta del Formulario -->
-            <div class="bg-white rounded shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-100 px-3 sm:px-4 py-2.5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-1">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-clipboard-list text-[#334155]"></i>
-                        <h2 class="titulo-10 text-slate-800 uppercase">Cédula de Registro de Queja o Comentario</h2>
-                    </div>
-                    <span class="text-slate-500">Campos con <span class="text-red-600 font-bold">*</span> obligatorios</span>
-                </div>
-
-                <form id="form-captura" class="p-3 sm:p-4 space-y-3" novalidate>
-                    <!-- Fila 1: Nombre y Teléfono (1 col en móvil, 2 cols en escritorio) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div>
-                            <label for="nombre">Nombre Completo de la Persona que Reporta <span class="text-red-600">*</span></label>
-                            <input type="text" id="nombre" name="nombre" placeholder="Ej. María Fernanda López Hernández" required>
-                        </div>
-
-                        <div>
-                            <label for="telefono">Teléfono de Contacto (10 Dígitos) <span class="text-red-600">*</span></label>
-                            <div class="relative">
-                                <input type="tel" id="telefono" name="telefono" maxlength="10" inputmode="numeric" placeholder="Ej. 8661234567" required>
-                                <span id="contador-tel" class="absolute right-2.5 top-2 text-slate-400">0/10</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fila 2: Estado, Distrito y Módulo (1 col en móvil, 3 cols en escritorio) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label for="estado">Entidad Federativa (Estado) <span class="text-red-600">*</span></label>
-                            <select id="estado" name="estado" required>
-                                <option value="">-- Seleccione un Estado --</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label for="distrito">Distrito al que Pertenece <span class="text-red-600">*</span></label>
-                            <input type="text" id="distrito" name="distrito" placeholder="Ej. Distrito 03 / Monclova" required>
-                        </div>
-
-                        <div>
-                            <label for="modulo">Módulo o Área Adscrita <span class="text-red-600">*</span></label>
-                            <input type="text" id="modulo" name="modulo" placeholder="Ej. MAC 050351 / Atención" required>
-                        </div>
-                    </div>
-
-                    <!-- Fila 3: Selección entre Queja o Comentario -->
-                    <div>
-                        <label>Clasificación del Reporte (Seleccione una opción) <span class="text-red-600">*</span></label>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-1">
-                            <label class="cursor-pointer mb-0">
-                                <input type="radio" name="tipo_reporte" value="Queja" class="sr-only" checked>
-                                <div class="tipo-radio-card card-queja">
-                                    <div class="w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center shrink-0">
-                                        <i class="fa-solid fa-triangle-exclamation"></i>
-                                    </div>
-                                    <div>
-                                        <div class="titulo-10 text-red-900">QUEJA</div>
-                                        <div class="text-slate-600 font-normal normal-case">Inconformidad por mala atención, retrasos, fallas técnicas o conducta indebida.</div>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="cursor-pointer mb-0">
-                                <input type="radio" name="tipo_reporte" value="Comentario" class="sr-only">
-                                <div class="tipo-radio-card card-comentario">
-                                    <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
-                                        <i class="fa-solid fa-comment-dots"></i>
-                                    </div>
-                                    <div>
-                                        <div class="titulo-10 text-blue-900">COMENTARIO</div>
-                                        <div class="text-slate-600 font-normal normal-case">Sugerencia de mejora, felicitación al personal o observación general del servicio.</div>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Fila 4: Descripción (Dispara Ventana Flotante para Personal MAC) -->
-                    <div>
-                        <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
-                            <label for="descripcion" class="mb-0">Descripción Detallada de la Queja o Comentario <span class="text-red-600">*</span></label>
-                            <button type="button" onclick="mostrarGuiaMAC(true)" class="text-[#334155] hover:underline flex items-center gap-1 font-semibold">
-                                <i class="fa-solid fa-circle-info"></i> Ver Guía de Redacción MAC
-                            </button>
-                        </div>
-                        <textarea id="descripcion" name="descripcion" rows="4" placeholder="Escriba aquí los hechos ocurridos, fecha aproximada, hora, nombre o puesto del personal involucrado y descripción clara..." required></textarea>
-                    </div>
-
-                    <!-- Fila 5: Evidencia Multimedia (Fotografías o Videos) -->
-                    <div class="bg-slate-50 p-3 rounded border border-dashed border-slate-300">
-                        <label for="evidencias" class="flex items-center gap-1.5 text-slate-800">
-                            <i class="fa-solid fa-photo-film text-[#334155]"></i>
-                            <span>Evidencia Multimedia (Fotografías o Videos - Opcional)</span>
-                        </label>
-                        <p class="text-slate-500 mb-2">
-                            Puede adjuntar imágenes (JPG, PNG, WEBP) o videos cortos (MP4, MOV, WEBM) directamente desde su celular o computadora.
-                        </p>
-                        <input type="file" id="evidencias" name="evidencias" accept="image/*,video/*" multiple class="bg-white cursor-pointer">
-
-                        <!-- Contenedor de Previsualización de Archivos -->
-                        <div id="preview-evidencias" class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2.5 empty:hidden"></div>
-                    </div>
-
-                    <!-- Botones de Acción (Apilables en móvil, alineados en escritorio) -->
-                    <div class="pt-2 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2">
-                        <button type="button" onclick="limpiarFormulario()" class="btn-secundario w-full sm:w-auto py-2">
-                            <i class="fa-solid fa-eraser"></i> Limpiar Campos
-                        </button>
-                        <button type="submit" class="btn-institucional w-full sm:w-auto px-5 py-2.5">
-                            <i class="fa-solid fa-paper-plane"></i> Registrar y Enviar Reporte
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </section>
-
-        <!-- ======================================================================
-             VISTA 2: PANEL DE ADMINISTRADOR (PROTEGIDO POR CONTRASEÑA)
-             ====================================================================== -->
-        <section id="vista-admin" class="hidden space-y-3">
-            <!-- Barra Superior del Administrador -->
-            <div class="bg-white rounded shadow-sm border border-slate-200 p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              </label>
+              <label class="flex items-center gap-2 p-2 border border-gray-300 rounded cursor-pointer hover:bg-gray-50 has-[:checked]:border-gray-800 has-[:checked]:bg-gray-100">
+                <input type="radio" name="tipoRegistro" value="Comentario" class="accent-gray-800" />
                 <div>
-                    <h2 class="titulo-10 text-[#1f2937] uppercase flex items-center gap-1.5">
-                        <i class="fa-solid fa-user-shield text-[#475569]"></i> Panel de Control — Sistema Integral de Quejas ANM
-                    </h2>
-                    <p class="text-slate-600">
-                        Consulta íntegra de escritos, revisión de evidencias multimedia, búsqueda en tiempo real y exportación separada a Excel.
-                    </p>
+                  <span class="font-bold text-gray-900 block">COMENTARIO</span>
+                  <span class="text-gray-500">Sugerencia, observación o felicitación</span>
                 </div>
+              </label>
+            </div>
+          </div>
 
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                    <button onclick="toggleGuiaDespliegue()" class="btn-secundario w-full sm:w-auto">
-                        <i class="fa-solid fa-cloud-arrow-up text-[#475569]"></i> Guía GitHub y Firebase
-                    </button>
-                    <button onclick="cargarDatosDemo()" class="btn-secundario w-full sm:w-auto" title="Cargar registros de prueba">
-                        <i class="fa-solid fa-database text-slate-600"></i> Cargar Datos Demo
-                    </button>
-                    <button onclick="exportarExcelSeparado()" class="btn-excel w-full sm:w-auto">
-                        <i class="fa-solid fa-file-excel"></i> Exportar a Excel (Quejas y Comentarios)
-                    </button>
-                </div>
+          <!-- Datos del reportante -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            <div>
+              <label for="nombreReporta" class="block font-semibold text-gray-700 mb-1">2. Nombre Completo de quien reporta *</label>
+              <input
+                type="text"
+                id="nombreReporta"
+                required
+                placeholder="Ej. Juan Pérez López"
+                class="input-anm"
+              />
             </div>
 
-            <!-- Sección Colapsable: Guía Técnica de Despliegue (GitHub Pages + Firebase) -->
-            <div id="panel-guia-despliegue" class="hidden bg-white rounded border-l-4 border-[#475569] border-t border-r border-b border-slate-200 p-3 shadow-sm space-y-2">
-                <div class="flex items-center justify-between border-b border-slate-100 pb-1.5">
-                    <h3 class="titulo-10 text-[#1f2937] uppercase flex items-center gap-1.5">
-                        <i class="fa-solid fa-code-branch text-[#475569]"></i> Despliegue en GitHub Pages y Firebase Cloud
-                    </h3>
-                    <button onclick="toggleGuiaDespliegue()" class="text-slate-400 hover:text-slate-700 p-1">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-slate-700">
-                    <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
-                        <strong class="text-slate-900 block mb-0.5">1. Subir a GitHub Pages (con Logotipo ANM):</strong>
-                        <p class="text-slate-600">Suba este archivo renombrado como <code>index.html</code> a su repositorio y asegúrese de subir también la imagen del logotipo (<code>image_d0ba41.jpg</code>) en la <strong>misma carpeta raíz</strong> que <code>index.html</code> para que cargue en producción. Luego active <strong>Settings &gt; Pages</strong>.</p>
-                    </div>
-                    <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
-                        <strong class="text-slate-900 block mb-0.5">2. Configurar Firebase Cloud:</strong>
-                        <p class="text-slate-600">En <code>console.firebase.google.com</code> cree un proyecto, habilite <strong>Firestore Database</strong> y <strong>Firebase Storage</strong>, y copie su objeto <code>firebaseConfig</code>.</p>
-                    </div>
-                    <div class="bg-slate-50 p-2.5 rounded border border-slate-200">
-                        <strong class="text-slate-900 block mb-0.5">3. Intercambiar StorageService:</strong>
-                        <p class="text-slate-600">En el código fuente, active <code>USE_FIREBASE = true</code> dentro de <code>StorageService</code> para sincronizar todos los celulares en tiempo real.</p>
-                    </div>
-                </div>
+            <div>
+              <label for="telefonoReporta" class="block font-semibold text-gray-700 mb-1">3. Teléfono de Contacto (10 dígitos) *</label>
+              <input
+                type="tel"
+                id="telefonoReporta"
+                required
+                maxlength="10"
+                inputmode="numeric"
+                pattern="[0-9]{10}"
+                placeholder="Ej. 8661234567"
+                class="input-anm"
+              />
+              <span id="errorTelefono" class="hidden text-red-600 font-medium mt-0.5 block">
+                Debe ingresar exactamente 10 dígitos numéricos.
+              </span>
+            </div>
+          </div>
+
+          <!-- Ubicación y Adscripción -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label for="estadoReporta" class="block font-semibold text-gray-700 mb-1">4. Entidad Federativa (Estado) *</label>
+              <select id="estadoReporta" required class="input-anm">
+                <option value="">Seleccione estado...</option>
+                <option value="Aguascalientes">Aguascalientes</option>
+                <option value="Baja California">Baja California</option>
+                <option value="Baja California Sur">Baja California Sur</option>
+                <option value="Campeche">Campeche</option>
+                <option value="Chiapas">Chiapas</option>
+                <option value="Chihuahua">Chihuahua</option>
+                <option value="Ciudad de México">Ciudad de México</option>
+                <option value="Coahuila">Coahuila</option>
+                <option value="Colima">Colima</option>
+                <option value="Durango">Durango</option>
+                <option value="Estado de México">Estado de México</option>
+                <option value="Guanajuato">Guanajuato</option>
+                <option value="Guerrero">Guerrero</option>
+                <option value="Hidalgo">Hidalgo</option>
+                <option value="Jalisco">Jalisco</option>
+                <option value="Michoacán">Michoacán</option>
+                <option value="Morelos">Morelos</option>
+                <option value="Nayarit">Nayarit</option>
+                <option value="Nuevo León">Nuevo León</option>
+                <option value="Oaxaca">Oaxaca</option>
+                <option value="Puebla">Puebla</option>
+                <option value="Querétaro">Querétaro</option>
+                <option value="Quintana Roo">Quintana Roo</option>
+                <option value="San Luis Potosí">San Luis Potosí</option>
+                <option value="Sinaloa">Sinaloa</option>
+                <option value="Sonora">Sonora</option>
+                <option value="Tabasco">Tabasco</option>
+                <option value="Tamaulipas">Tamaulipas</option>
+                <option value="Tlaxcala">Tlaxcala</option>
+                <option value="Veracruz">Veracruz</option>
+                <option value="Yucatán">Yucatán</option>
+                <option value="Zacatecas">Zacatecas</option>
+              </select>
             </div>
 
-            <!-- Tarjetas de Resumen Estadístico -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                <div class="bg-white p-2.5 rounded border border-slate-200 shadow-sm">
-                    <div class="text-slate-500 uppercase font-semibold">Total de Registros</div>
-                    <div id="stat-total" class="titulo-10 text-slate-900 mt-0.5">0</div>
-                </div>
-                <div class="bg-white p-2.5 rounded border-l-4 border-red-700 border-t border-r border-b border-slate-200 shadow-sm">
-                    <div class="text-red-800 uppercase font-semibold">Total de Quejas</div>
-                    <div id="stat-quejas" class="titulo-10 text-red-700 mt-0.5">0</div>
-                </div>
-                <div class="bg-white p-2.5 rounded border-l-4 border-blue-700 border-t border-r border-b border-slate-200 shadow-sm">
-                    <div class="text-blue-800 uppercase font-semibold">Total de Comentarios</div>
-                    <div id="stat-comentarios" class="titulo-10 text-blue-700 mt-0.5">0</div>
-                </div>
-                <div class="bg-white p-2.5 rounded border-l-4 border-slate-600 border-t border-r border-b border-slate-200 shadow-sm">
-                    <div class="text-slate-700 uppercase font-semibold">Con Evidencia Adjunta</div>
-                    <div id="stat-evidencias" class="titulo-10 text-slate-800 mt-0.5">0</div>
-                </div>
+            <div>
+              <label for="distritoReporta" class="block font-semibold text-gray-700 mb-1">5. Distrito Electoral *</label>
+              <input
+                type="text"
+                id="distritoReporta"
+                required
+                placeholder="Ej. Distrito 03 / JDE 03"
+                class="input-anm"
+              />
             </div>
 
-            <!-- Buscador en Tiempo Real y Filtros Rápidos (Adaptado a celular) -->
-            <div class="bg-white p-3 rounded border border-slate-200 shadow-sm space-y-2.5">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <!-- Botones de Filtro Rápido -->
-                    <div class="flex flex-wrap items-center gap-1.5" id="grupo-filtros-rapidos">
-                        <span class="text-slate-500 font-semibold uppercase mr-1">Vista:</span>
-                        <button type="button" onclick="seleccionarFiltroRapido('TODOS')" data-filtro="TODOS" class="filtro-pill btn-institucional py-1.5 px-2.5">
-                            Todos (<span id="pill-count-todos">0</span>)
-                        </button>
-                        <button type="button" onclick="seleccionarFiltroRapido('Queja')" data-filtro="Queja" class="filtro-pill btn-secundario py-1.5 px-2.5">
-                            Quejas (<span id="pill-count-quejas">0</span>)
-                        </button>
-                        <button type="button" onclick="seleccionarFiltroRapido('Comentario')" data-filtro="Comentario" class="filtro-pill btn-secundario py-1.5 px-2.5">
-                            Comentarios (<span id="pill-count-comentarios">0</span>)
-                        </button>
-                    </div>
-
-                    <div id="contador-resultados" class="text-slate-500 font-medium">
-                        Mostrando 0 registros
-                    </div>
-                </div>
-
-                <div class="flex flex-col sm:flex-row items-stretch sm:items-end gap-2">
-                    <div class="flex-grow relative">
-                        <label for="filtro-busqueda">Buscador (Folio, Nombre, Teléfono, Estado, Distrito, Módulo o Escrito)</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-magnifying-glass text-slate-400 absolute left-2.5 top-2.5"></i>
-                            <input type="text" id="filtro-busqueda" oninput="renderizarTablaAdmin()" style="padding-left: 22px;" placeholder="Ej. ANM-Q-2026, Coahuila, biométrico, 866...">
-                        </div>
-                    </div>
-                    <button type="button" onclick="limpiarFiltrosAdmin()" class="btn-secundario w-full sm:w-auto py-2">
-                        <i class="fa-solid fa-rotate-left"></i> Restablecer
-                    </button>
-                </div>
+            <div>
+              <label for="moduloReporta" class="block font-semibold text-gray-700 mb-1">6. Módulo o Área Adscrita *</label>
+              <input
+                type="text"
+                id="moduloReporta"
+                required
+                placeholder="Ej. MAC 050351 / Vocalía RFE"
+                class="input-anm"
+              />
             </div>
+          </div>
 
-            <!-- Tabla de Resultados con Scroll Horizontal Fluido -->
-            <div class="bg-white rounded border border-slate-200 shadow-sm overflow-hidden">
-                <div class="overflow-x-auto w-full">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Folio</th>
-                                <th>Tipo</th>
-                                <th>Fecha / Hora</th>
-                                <th>Reportante</th>
-                                <th>Teléfono</th>
-                                <th>Estado / Distrito</th>
-                                <th>Módulo / Área</th>
-                                <th>Extracto del Escrito</th>
-                                <th>Evidencia</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-reportes-body">
-                            <!-- Filas generadas dinámicamente -->
-                        </tbody>
-                    </table>
-                </div>
-                <div id="tabla-vacia" class="hidden p-6 text-center text-slate-500">
-                    <i class="fa-solid fa-folder-open mb-1 text-slate-400" style="font-size: 14px !important;"></i>
-                    <p>No se encontraron registros que coincidan con los criterios de búsqueda actuales.</p>
-                </div>
+          <!-- Descripción con disparo de ventana flotante -->
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label for="descripcionReporta" class="font-semibold text-gray-700">7. Descripción Detallada de la Queja o Comentario *</label>
+              <button type="button" id="btnVerGuiaMac" class="text-gray-600 underline hover:text-gray-900">
+                Ver directrices personal MAC
+              </button>
             </div>
-        </section>
+            <textarea
+              id="descripcionReporta"
+              rows="5"
+              required
+              placeholder="Describa los hechos de manera clara, objetiva y cronológica..."
+              class="input-anm resize-y"
+            ></textarea>
+          </div>
 
-    </main>
+          <!-- Evidencia multimedia (Fotos y Videos) -->
+          <div class="bg-gray-50 border border-dashed border-gray-400 rounded p-2.5">
+            <label for="evidenciaArchivos" class="block font-semibold text-gray-800 mb-1">
+              8. Evidencia Multimedia (Fotografías o Videos - Opcional)
+            </label>
+            <p class="text-gray-500 mb-2">
+              Adjunte capturas, fotografías o videos cortos que respalden su reporte. Las imágenes se optimizan automáticamente para almacenamiento en la nube.
+            </p>
+            <input
+              type="file"
+              id="evidenciaArchivos"
+              accept="image/*,video/*"
+              multiple
+              class="block w-full text-gray-700 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border file:border-gray-400 file:bg-white file:text-gray-800 file:font-semibold hover:file:bg-gray-100 cursor-pointer"
+            />
+            <div id="contenedorPreviaArchivos" class="mt-2 grid grid-cols-2 sm:grid-cols-4 gap-2 hidden"></div>
+          </div>
 
-    <!-- ==========================================================================
-         PIE DE PÁGINA
-         ========================================================================== -->
-    <footer class="bg-white border-t border-slate-200 py-2.5 px-3 sm:px-4 mt-auto">
-        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between text-center sm:text-left text-slate-500 gap-1">
-            <span>Sistema Integral de Quejas ANM — Apoyo Nacional MACs</span>
-            <span>Entorno optimizado para Móvil, GitHub Pages y Firebase Cloud</span>
+          <!-- Botón de envío -->
+          <div class="pt-1 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-gray-200">
+            <p class="text-gray-500">
+              Su registro es privado; ningún otro usuario público podrá consultar el contenido enviado.
+            </p>
+            <button type="submit" id="btnEnviarReporte" class="btn-anm-primary w-full sm:w-auto uppercase tracking-wider">
+              Enviar y Generar Folio
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- VISTA 2: PANEL DE ADMINISTRADOR (SOLO VISIBLE TRAS AUTENTICACIÓN) -->
+    <section id="vistaAdmin" class="hidden space-y-3">
+      <!-- Encabezado y Contadores -->
+      <div class="bg-white border border-gray-300 rounded-md p-3 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div>
+          <h2 class="titulo-10 text-gray-900 uppercase">Panel de Control Administrativo · ANM</h2>
+          <p class="text-gray-500">Gestión centralizada de folios, lectura íntegra de escritos, depuración y exportación a Excel.</p>
         </div>
-    </footer>
-
-    <!-- ==========================================================================
-         MODAL 1: VENTANA FLOTANTE PARA PERSONAL DE MÓDULOS DE ATENCIÓN CIUDADANA
-         Se dispara automáticamente al comenzar a escribir en la descripción
-         ========================================================================== -->
-    <div id="modal-guia-mac" class="modal-backdrop">
-        <div class="bg-white rounded-md shadow-xl border-t-4 border-[#334155] w-[95%] max-w-md overflow-hidden">
-            <div class="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
-                <div class="flex items-center gap-2 text-[#1f2937]">
-                    <i class="fa-solid fa-headset" style="font-size: 11px !important;"></i>
-                    <h3 class="modal-title uppercase">Lineamientos de Redacción — Personal MAC</h3>
-                </div>
-                <button onclick="cerrarModal('modal-guia-mac')" class="text-slate-400 hover:text-slate-700 p-1">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <div class="p-4 space-y-2.5 text-slate-700">
-                <p class="font-semibold text-slate-900">
-                    Estimado personal de Módulos de Atención Ciudadana (ANM), al redactar la descripción observe los siguientes lineamientos:
-                </p>
-                <ul class="list-disc pl-4 space-y-1.5 text-slate-600">
-                    <li><strong>Objetividad y Claridad:</strong> Relate los hechos de forma imparcial, cronológica y precisa, evitando calificativos o juicios personales.</li>
-                    <li><strong>Respeto y Lenguaje Institucional:</strong> Mantenga un tono formal y respetuoso tanto hacia la ciudadanía como hacia el personal operativo.</li>
-                    <li><strong>Datos de Identificación del Evento:</strong> Indique fecha, hora aproximada, estación o ventanilla y folio de trámite relacionado.</li>
-                    <li><strong>Confidencialidad Estricta:</strong> Este escrito queda resguardado bajo folio único ANM y no será visible para terceros en esta terminal.</li>
-                </ul>
-            </div>
-            <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-end">
-                <button onclick="cerrarModal('modal-guia-mac')" class="btn-institucional w-full sm:w-auto">
-                    <i class="fa-solid fa-check"></i> Entendido, Continuar Redactando
-                </button>
-            </div>
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="px-2 py-1 rounded bg-gray-100 border border-gray-300 font-semibold text-gray-800">
+            Total: <strong id="statTotal">0</strong>
+          </span>
+          <span class="px-2 py-1 rounded bg-gray-800 text-white font-semibold">
+            Quejas: <strong id="statQuejas">0</strong>
+          </span>
+          <span class="px-2 py-1 rounded bg-gray-200 border border-gray-400 text-gray-800 font-semibold">
+            Comentarios: <strong id="statComentarios">0</strong>
+          </span>
+          <button type="button" id="btnExportarExcel" class="btn-anm-primary !bg-gray-700 hover:!bg-gray-900 flex items-center gap-1">
+            <span>Exportar a Excel (.xlsx)</span>
+          </button>
         </div>
-    </div>
+      </div>
 
-    <!-- ==========================================================================
-         MODAL 2: ACCESO AL ADMINISTRADOR (CON LOGOTIPO ANM)
-         ========================================================================== -->
-    <div id="modal-login" class="modal-backdrop">
-        <div class="bg-white rounded-md shadow-xl border-t-4 border-[#1f2937] w-[95%] max-w-xs overflow-hidden">
-            <div class="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between">
-                <h3 class="modal-title text-slate-800 uppercase flex items-center gap-1.5">
-                    <i class="fa-solid fa-shield-halved text-[#334155]"></i> Acceso Administrador ANM
-                </h3>
-                <button onclick="cerrarModal('modal-login')" class="text-slate-400 hover:text-slate-700 p-1">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <form id="form-login" class="p-4 space-y-3">
-                <div class="flex flex-col items-center text-center pb-1">
-                    <img src="image_d0ba41.jpg"
-                         onerror="this.onerror=null; this.src='https://placehold.co/80x80/334155/ffffff?text=ANM';"
-                         alt="Logo ANM"
-                         class="w-12 h-12 rounded-full object-cover border border-slate-300 shadow-sm mb-1.5">
-                    <span class="font-semibold text-slate-700">Apoyo Nacional MACs</span>
-                </div>
-                <div>
-                    <label for="admin-pass">Clave de Acceso Administrativo</label>
-                    <input type="password" id="admin-pass" placeholder="Ingrese contraseña..." required>
-                    <p class="text-slate-400 mt-1">
-                        Clave predeterminada: <strong class="text-slate-600">admin2026</strong>
-                    </p>
-                </div>
-                <div id="login-error" class="hidden text-red-700 bg-red-50 border border-red-200 p-2 rounded">
-                    Contraseña incorrecta. Verifique sus credenciales.
-                </div>
-                <div class="flex justify-end gap-2 pt-1">
-                    <button type="button" onclick="cerrarModal('modal-login')" class="btn-secundario">Cancelar</button>
-                    <button type="submit" class="btn-institucional">Ingresar al Panel</button>
-                </div>
-            </form>
+      <!-- Barra de Búsqueda y Filtros -->
+      <div class="bg-white border border-gray-300 rounded-md p-2.5 shadow-sm grid grid-cols-1 sm:grid-cols-4 gap-2">
+        <div class="sm:col-span-2">
+          <label for="buscadorAdmin" class="block font-semibold text-gray-700 mb-0.5">Buscador Instantáneo</label>
+          <input
+            type="text"
+            id="buscadorAdmin"
+            placeholder="Buscar por folio, nombre, teléfono, estado, distrito, módulo o texto..."
+            class="input-anm"
+          />
         </div>
-    </div>
-
-    <!-- ==========================================================================
-         MODAL 3: COMPROBANTE DE REGISTRO EXITOSO CON COPIA DE FOLIO ANM
-         ========================================================================== -->
-    <div id="modal-exito" class="modal-backdrop">
-        <div class="bg-white rounded-md shadow-xl border-t-4 border-emerald-600 w-[95%] max-w-sm overflow-hidden text-center">
-            <div class="p-4 space-y-2.5">
-                <div class="flex items-center justify-center gap-2">
-                    <img src="image_d0ba41.jpg"
-                         onerror="this.onerror=null; this.src='https://placehold.co/80x80/334155/ffffff?text=ANM';"
-                         alt="Logo ANM"
-                         class="w-9 h-9 rounded-full object-cover border border-slate-300 shadow-sm">
-                    <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center">
-                        <i class="fa-solid fa-circle-check" style="font-size: 16px !important;"></i>
-                    </div>
-                </div>
-                <h3 class="modal-title text-slate-900 uppercase">Comprobante de Registro Exitoso</h3>
-                <p class="text-slate-600">
-                    Su <span id="exito-tipo" class="font-bold"></span> ha sido registrada de forma confidencial en el Sistema Integral de Quejas ANM. Conserve su folio único:
-                </p>
-                <div class="bg-slate-50 border border-slate-300 rounded py-2.5 px-3 flex flex-col items-center gap-1.5">
-                    <span class="text-slate-500 uppercase font-semibold">Folio Institucional Asignado</span>
-                    <span id="exito-folio" class="titulo-10 text-[#1f2937] tracking-wider select-all">ANM-Q-2026-0001</span>
-                    <button type="button" onclick="copiarFolioGenerado()" class="btn-secundario mt-0.5">
-                        <i class="fa-regular fa-copy text-[#334155]"></i> Copiar Folio al Portapapeles
-                    </button>
-                </div>
-                <p class="text-slate-400">
-                    Por privacidad, el contenido enviado quedó resguardado y no es consultable desde esta terminal pública.
-                </p>
-            </div>
-            <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-center">
-                <button onclick="cerrarModal('modal-exito')" class="btn-institucional w-full">
-                    Aceptar y Finalizar
-                </button>
-            </div>
+        <div>
+          <label for="filtroTipoAdmin" class="block font-semibold text-gray-700 mb-0.5">Filtrar por Tipo</label>
+          <select id="filtroTipoAdmin" class="input-anm">
+            <option value="TODOS">Todos (Quejas y Comentarios)</option>
+            <option value="Queja">Solo Quejas</option>
+            <option value="Comentario">Solo Comentarios</option>
+          </select>
         </div>
-    </div>
-
-    <!-- ==========================================================================
-         MODAL 4: VISOR ÍNTEGRO DE ESCRITO COMPLETO Y EVIDENCIAS MULTIMEDIA
-         ========================================================================== -->
-    <div id="modal-escrito-completo" class="modal-backdrop">
-        <div class="bg-white rounded-md shadow-xl border-t-4 border-[#1f2937] w-[95%] max-w-2xl overflow-hidden">
-            <div class="bg-slate-100 px-4 py-2.5 border-b border-slate-200 flex items-center justify-between gap-2">
-                <div class="flex flex-wrap items-center gap-2">
-                    <h3 id="detalle-folio-titulo" class="modal-title text-[#1f2937] uppercase">Expediente: ANM-Q-2026-0001</h3>
-                    <span id="detalle-badge-tipo" class="badge-queja">QUEJA</span>
-                </div>
-                <button onclick="cerrarModal('modal-escrito-completo')" class="text-slate-400 hover:text-slate-700 p-1">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="p-3 sm:p-4 max-h-[75vh] overflow-y-auto space-y-3">
-                <!-- Metadatos del Reportante -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded border border-slate-200">
-                    <div>
-                        <span class="text-slate-400 uppercase block">Fecha y Hora</span>
-                        <strong id="detalle-fecha" class="text-slate-800">--</strong>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 uppercase block">Persona que Reporta</span>
-                        <strong id="detalle-nombre" class="text-slate-800">--</strong>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 uppercase block">Teléfono (10 Dígitos)</span>
-                        <strong id="detalle-telefono" class="text-slate-800">--</strong>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 uppercase block">Entidad Federativa</span>
-                        <strong id="detalle-estado" class="text-slate-800">--</strong>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 uppercase block">Distrito</span>
-                        <strong id="detalle-distrito" class="text-slate-800">--</strong>
-                    </div>
-                    <div>
-                        <span class="text-slate-400 uppercase block">Módulo / Área Adscrita</span>
-                        <strong id="detalle-modulo" class="text-slate-800">--</strong>
-                    </div>
-                </div>
-
-                <!-- Texto Íntegro sin Recortes -->
-                <div>
-                    <span class="text-slate-500 uppercase font-bold block mb-1">Texto Íntegro del Escrito:</span>
-                    <div id="detalle-descripcion" class="bg-white border border-slate-300 rounded p-3 text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
-                    </div>
-                </div>
-
-                <!-- Galería de Evidencias Multimedia -->
-                <div>
-                    <span class="text-slate-500 uppercase font-bold block mb-1">Evidencias Multimedia Adjuntas:</span>
-                    <div id="detalle-evidencias-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-2">
-                <button type="button" id="btn-detalle-eliminar" class="btn-secundario text-red-700 border-red-200 hover:bg-red-50 w-full sm:w-auto">
-                    <i class="fa-solid fa-trash-can"></i> Eliminar este Registro
-                </button>
-                <button type="button" onclick="cerrarModal('modal-escrito-completo')" class="btn-institucional w-full sm:w-auto">
-                    Cerrar Expediente
-                </button>
-            </div>
+        <div class="flex items-end">
+          <button type="button" id="btnLimpiarFiltros" class="btn-anm-secondary w-full">
+            Limpiar Filtros
+          </button>
         </div>
-    </div>
+      </div>
 
-    <!-- ==========================================================================
-         MODAL 5: CONFIRMACIÓN DE ELIMINACIÓN DE REGISTRO (ADMIN)
-         ========================================================================== -->
-    <div id="modal-confirmar-eliminar" class="modal-backdrop">
-        <div class="bg-white rounded-md shadow-xl border-t-4 border-red-700 w-[95%] max-w-xs overflow-hidden">
-            <div class="p-4 space-y-2 text-center">
-                <div class="w-8 h-8 rounded-full bg-red-100 text-red-700 mx-auto flex items-center justify-center">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-                <h3 class="modal-title text-slate-900 uppercase">Confirmar Eliminación</h3>
-                <p class="text-slate-600">
-                    ¿Está seguro de que desea eliminar permanentemente el registro con folio <strong id="eliminar-folio-texto" class="text-red-700"></strong>? Esta acción no se puede deshacer.
-                </p>
-            </div>
-            <div class="bg-slate-50 px-4 py-2.5 border-t border-slate-200 flex justify-end gap-2">
-                <button type="button" onclick="cerrarModal('modal-confirmar-eliminar')" class="btn-secundario">Cancelar</button>
-                <button type="button" onclick="ejecutarEliminacionConfirmada()" class="bg-red-700 hover:bg-red-800 text-white px-3 py-1.5 rounded font-semibold">
-                    Sí, Eliminar
-                </button>
-            </div>
+      <!-- Tabla / Lista de Registros -->
+      <div class="bg-white border border-gray-300 rounded-md shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-gray-800 text-white uppercase">
+                <th class="p-2 border-b border-gray-700">Folio</th>
+                <th class="p-2 border-b border-gray-700">Tipo</th>
+                <th class="p-2 border-b border-gray-700">Fecha / Hora</th>
+                <th class="p-2 border-b border-gray-700">Reportante / Tel.</th>
+                <th class="p-2 border-b border-gray-700">Estado / Distrito / Módulo</th>
+                <th class="p-2 border-b border-gray-700">Extracto del Escrito</th>
+                <th class="p-2 border-b border-gray-700 text-center">Evidencia</th>
+                <th class="p-2 border-b border-gray-700 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaRegistrosBody" class="divide-y divide-gray-200">
+              <tr>
+                <td colspan="8" class="p-4 text-center text-gray-500">Cargando registros desde la base de datos...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- PIE DE PÁGINA -->
+  <footer class="bg-white border-t border-gray-300 py-2 px-3 mt-4">
+    <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1 text-gray-500">
+      <span>Sistema Integral de Quejas ANM · Apoyo Nacional MACs</span>
+      <span>Operación en Tiempo Real · Respaldo Cloud Firestore</span>
     </div>
+  </footer>
 
-    <!-- ==========================================================================
-         TOAST DE NOTIFICACIONES RÁPIDAS (SIN ALERTAS NATIVAS DEL NAVEGADOR)
-         ========================================================================== -->
-    <div id="toast-notificacion" class="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-4 bg-slate-900 text-white px-3 py-2 rounded shadow-lg hidden items-center gap-2 z-50 border border-slate-700">
-        <i id="toast-icono" class="fa-solid fa-circle-info text-slate-300"></i>
-        <span id="toast-mensaje">Mensaje</span>
+  <!-- ===================================================================== -->
+  <!-- MODALES / VENTANAS FLOTANTES                                          -->
+  <!-- ===================================================================== -->
+
+  <!-- MODAL 1: AVISO FLOTANTE PARA PERSONAL DE MÓDULOS DE ATENCIÓN CIUDADANA -->
+  <div id="modalAvisoMac" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3">
+    <div class="bg-white border border-gray-400 rounded-md max-w-md w-[95%] shadow-xl overflow-hidden">
+      <div class="bg-gray-800 text-white px-3 py-2 flex items-center justify-between">
+        <h3 class="titulo-10 uppercase">Aviso Importante · Personal de Módulos MAC</h3>
+        <button type="button" id="btnCerrarAvisoMacX" class="text-gray-300 hover:text-white font-bold px-1">✕</button>
+      </div>
+      <div class="p-3 space-y-2 text-gray-700">
+        <p class="font-semibold text-gray-900">
+          Antes de redactar su queja o comentario, considere las siguientes directrices operativas:
+        </p>
+        <ul class="list-disc pl-4 space-y-1">
+          <li><strong>Objetividad y Precisión:</strong> Indique fecha, hora aproximada, número de módulo (MAC) y descripción puntual de la incidencia técnica, operativa o administrativa.</li>
+          <li><strong>Protección de Datos Personales:</strong> Evite incluir datos sensibles o información confidencial de ciudadanos atendidos (como CURP, clave de elector o domicilio particular) dentro de la narrativa.</li>
+          <li><strong>Respaldo Documental:</strong> Si reporta fallas de sistema, equipo o infraestructura, adjunte captura de pantalla, fotografía o video breve en el apartado inferior.</li>
+          <li><strong>Confidencialidad:</strong> Su reporte recibirá un folio único y será revisado exclusivamente por la coordinación administrativa ANM.</li>
+        </ul>
+      </div>
+      <div class="bg-gray-100 border-t border-gray-200 px-3 py-2 flex justify-end">
+        <button type="button" id="btnEntendidoAvisoMac" class="btn-anm-primary">
+          Entendido, continuar redactando
+        </button>
+      </div>
     </div>
+  </div>
 
-    <!-- ==========================================================================
-         LÓGICA DEL SISTEMA (JAVASCRIPT)
-         ========================================================================== -->
-    <script>
-        /* ==========================================================================
-           CAPA DE SERVICIO MODULAR (StorageService)
-           - Opera en localhost con localStorage (USE_FIREBASE = false).
-           - Para conectar con Firebase Firestore + Storage, cambie USE_FIREBASE = true
-             y complete el objeto firebaseConfig.
-           ========================================================================== */
-        const StorageService = {
-            USE_FIREBASE: false,
-            STORAGE_KEY: 'anm_sistema_quejas_comentarios_v3',
-            COUNTER_KEY: 'anm_sistema_secuencia_folios_v3',
+  <!-- MODAL 2: COMPROBANTE DE FOLIO GENERADO -->
+  <div id="modalFolioExito" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3">
+    <div class="bg-white border border-gray-400 rounded-md max-w-sm w-[95%] shadow-xl overflow-hidden text-center">
+      <div class="bg-gray-800 text-white px-3 py-2">
+        <h3 class="titulo-10 uppercase">Registro Guardado Exitosamente</h3>
+      </div>
+      <div class="p-4 space-y-2.5">
+        <div class="w-11 h-11 rounded-full mx-auto overflow-hidden border border-gray-300">
+          <img src="image_d0ba41.jpg" alt="ANM" class="w-full h-full object-cover" onerror="this.style.display='none'" />
+        </div>
+        <p class="text-gray-600">Su reporte ha sido registrado en el sistema. Conserve el siguiente folio para cualquier aclaración:</p>
+        <div class="bg-gray-100 border border-gray-400 rounded py-2 px-3">
+          <span class="block text-gray-500 uppercase">Folio Oficial Asignado</span>
+          <strong id="textoFolioGenerado" class="titulo-10 text-gray-900 tracking-wider select-all">ANM-Q-2026-0001</strong>
+        </div>
+        <p id="detalleSyncFolio" class="text-gray-500"></p>
+      </div>
+      <div class="bg-gray-100 border-t border-gray-200 px-3 py-2 flex justify-center gap-2">
+        <button type="button" id="btnCopiarFolio" class="btn-anm-secondary">Copiar Folio</button>
+        <button type="button" id="btnCerrarFolioExito" class="btn-anm-primary">Aceptar</button>
+      </div>
+    </div>
+  </div>
 
-            firebaseConfig: {
-                apiKey: "TU_API_KEY_AQUI",
-                authDomain: "tu-proyecto.firebaseapp.com",
-                projectId: "tu-proyecto",
-                storageBucket: "tu-proyecto.appspot.com",
-                messagingSenderId: "000000000000",
-                appId: "1:000000000000:web:000000000000"
-            },
+  <!-- MODAL 3: ACCESO ADMINISTRADOR -->
+  <div id="modalLoginAdmin" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3">
+    <div class="bg-white border border-gray-400 rounded-md max-w-xs w-[95%] shadow-xl overflow-hidden">
+      <div class="bg-gray-800 text-white px-3 py-2 flex items-center justify-between">
+        <h3 class="titulo-10 uppercase">Acceso Restringido · Administrador</h3>
+        <button type="button" id="btnCerrarLoginX" class="text-gray-300 hover:text-white font-bold">✕</button>
+      </div>
+      <form id="formLoginAdmin" class="p-3 space-y-2.5">
+        <p class="text-gray-600">Ingrese la clave de autorización para visualizar, buscar, exportar o depurar reportes.</p>
+        <div>
+          <label for="claveAdminInput" class="block font-semibold text-gray-700 mb-1">Contraseña de Administrador</label>
+          <input type="password" id="claveAdminInput" required placeholder="••••••••" class="input-anm" />
+          <span id="errorLoginAdmin" class="hidden text-red-600 font-semibold mt-1 block">Clave incorrecta. Intente nuevamente.</span>
+        </div>
+        <div class="flex justify-end gap-1.5 pt-1">
+          <button type="button" id="btnCancelarLogin" class="btn-anm-secondary">Cancelar</button>
+          <button type="submit" class="btn-anm-primary">Ingresar</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-            obtenerTodos() {
-                try {
-                    const raw = localStorage.getItem(this.STORAGE_KEY);
-                    return raw ? JSON.parse(raw) : [];
-                } catch (e) {
-                    return [];
-                }
-            },
+  <!-- MODAL 4: VISOR COMPLETO DE ESCRITO Y EVIDENCIA -->
+  <div id="modalDetalleEscrito" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3">
+    <div class="bg-white border border-gray-400 rounded-md max-w-xl w-[95%] max-h-[90vh] flex flex-col shadow-xl overflow-hidden">
+      <div class="bg-gray-800 text-white px-3 py-2 flex items-center justify-between flex-shrink-0">
+        <h3 id="detalleModalTitulo" class="titulo-10 uppercase">Detalle Completo del Registro</h3>
+        <button type="button" id="btnCerrarDetalleX" class="text-gray-300 hover:text-white font-bold">✕</button>
+      </div>
+      <div id="detalleModalCuerpo" class="p-3 overflow-y-auto space-y-2.5 text-gray-800"></div>
+      <div class="bg-gray-100 border-t border-gray-200 px-3 py-2 flex justify-between items-center flex-shrink-0">
+        <button type="button" id="btnEliminarDesdeDetalle" class="btn-anm-secondary !text-red-700 !border-red-300 hover:!bg-red-50">
+          Eliminar Registro
+        </button>
+        <button type="button" id="btnCerrarDetalle" class="btn-anm-primary">Cerrar Visor</button>
+      </div>
+    </div>
+  </div>
 
-            generarFolioSecuencial(tipo) {
-                const anio = new Date().getFullYear();
-                const letraTipo = tipo === 'Queja' ? 'Q' : 'C';
-                let contadores = { Q: 0, C: 0 };
+  <!-- MODAL 5: CONFIRMACIÓN DE ELIMINACIÓN -->
+  <div id="modalConfirmarEliminar" class="hidden fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3">
+    <div class="bg-white border border-gray-400 rounded-md max-w-xs w-[95%] shadow-xl overflow-hidden">
+      <div class="bg-gray-900 text-white px-3 py-2">
+        <h3 class="titulo-10 uppercase">Confirmar Eliminación</h3>
+      </div>
+      <div class="p-3 space-y-2">
+        <p class="text-gray-700">¿Está seguro de eliminar permanentemente el registro con folio <strong id="folioEliminarTexto"></strong>?</p>
+        <p class="text-gray-500">Esta acción borrará el escrito de la base de datos en la nube y no se puede deshacer.</p>
+      </div>
+      <div class="bg-gray-100 border-t border-gray-200 px-3 py-2 flex justify-end gap-1.5">
+        <button type="button" id="btnCancelarEliminar" class="btn-anm-secondary">Cancelar</button>
+        <button type="button" id="btnConfirmarEliminar" class="btn-anm-primary !bg-red-700 !border-red-800 hover:!bg-red-800">
+          Sí, Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
 
-                try {
-                    const rawCounters = localStorage.getItem(this.COUNTER_KEY);
-                    if (rawCounters) contadores = JSON.parse(rawCounters);
-                } catch (e) {}
+  <!-- ===================================================================== -->
+  <!-- LÓGICA DE APLICACIÓN + CONEXIÓN FIREBASE CLOUD FIRESTORE              -->
+  <!-- ===================================================================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      deleteDoc,
+      doc,
+      onSnapshot,
+      query,
+      orderBy
+    } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-                const existentes = this.obtenerTodos().filter(r => r.tipo === tipo).length;
-                const siguiente = Math.max((contadores[letraTipo] || 0), existentes) + 1;
-                contadores[letraTipo] = siguiente;
-                localStorage.setItem(this.COUNTER_KEY, JSON.stringify(contadores));
+    // Configuración oficial de tu proyecto Firebase: quejasmac
+    const firebaseConfig = {
+      apiKey: "AIzaSyCvKG1FoqNdytUJO048_xiw2tYwNOza3pM",
+      authDomain: "quejasmac.firebaseapp.com",
+      projectId: "quejasmac",
+      storageBucket: "quejasmac.firebasestorage.app",
+      messagingSenderId: "620825136016",
+      appId: "1:620825136016:web:f63c97e0b44eb374d8c115"
+    };
 
-                const numeroFormateado = String(siguiente).padStart(4, '0');
-                return `ANM-${letraTipo}-${anio}-${numeroFormateado}`;
-            },
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const COLECCION_QUEJAS = "quejas_anm";
+    const CLAVE_ADMIN = "admin2026";
+    const STORAGE_KEY_LOCAL = "anm_quejas_respaldo_v1";
 
-            guardar(registro) {
-                const lista = this.obtenerTodos();
-                lista.unshift(registro);
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(lista));
-                return registro;
-            },
+    // Estado global
+    let registros = [];
+    let firebaseConectado = false;
+    let avisoMacMostrado = false;
+    let archivosProcesados = [];
+    let registroSeleccionadoId = null;
+    let registroAEliminar = null;
 
-            eliminar(id) {
-                const lista = this.obtenerTodos().filter(r => r.id !== id);
-                localStorage.setItem(this.STORAGE_KEY, JSON.stringify(lista));
+    // Referencias DOM
+    const dotNube = document.getElementById("dotNube");
+    const txtNube = document.getElementById("txtNube");
+    const formQueja = document.getElementById("formQueja");
+    const telefonoInput = document.getElementById("telefonoReporta");
+    const errorTelefono = document.getElementById("errorTelefono");
+    const descripcionInput = document.getElementById("descripcionReporta");
+    const evidenciaInput = document.getElementById("evidenciaArchivos");
+    const contenedorPreviaArchivos = document.getElementById("contenedorPreviaArchivos");
+
+    // -----------------------------------------------------------------------
+    // 1. SINCRONIZACIÓN EN TIEMPO REAL CON CLOUD FIRESTORE + RESPALDO LOCAL
+    // -----------------------------------------------------------------------
+    function actualizarEstadoConexion(online, mensaje) {
+      firebaseConectado = online;
+      dotNube.className = online
+        ? "w-1.5 h-1.5 rounded-full bg-emerald-400"
+        : "w-1.5 h-1.5 rounded-full bg-amber-400";
+      txtNube.textContent = mensaje;
+    }
+
+    function cargarRespaldoLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY_LOCAL);
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function guardarRespaldoLocal(lista) {
+      try {
+        localStorage.setItem(STORAGE_KEY_LOCAL, JSON.stringify(lista));
+      } catch (e) {
+        console.warn("Respaldo local lleno:", e);
+      }
+    }
+
+    function iniciarEscuchaFirestore() {
+      try {
+        const q = query(collection(db, COLECCION_QUEJAS), orderBy("timestamp", "desc"));
+        onSnapshot(
+          q,
+          (snapshot) => {
+            const listaNube = [];
+            snapshot.forEach((docSnap) => {
+              listaNube.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            registros = listaNube;
+            guardarRespaldoLocal(registros);
+            actualizarEstadoConexion(true, "Firebase Activo");
+            renderizarPanelAdmin();
+          },
+          (error) => {
+            console.warn("Error o permisos pendientes en Firestore:", error);
+            registros = cargarRespaldoLocal();
+            actualizarEstadoConexion(false, "Modo Local (Revisar Reglas)");
+            renderizarPanelAdmin();
+          }
+        );
+      } catch (err) {
+        console.error("Error inicializando Firestore:", err);
+        registros = cargarRespaldoLocal();
+        actualizarEstadoConexion(false, "Modo Local");
+        renderizarPanelAdmin();
+      }
+    }
+
+    iniciarEscuchaFirestore();
+
+    // -----------------------------------------------------------------------
+    // 2. VENTANA FLOTANTE AUTOMÁTICA PARA PERSONAL MAC AL ESCRIBIR DESCRIPCIÓN
+    // -----------------------------------------------------------------------
+    const modalAvisoMac = document.getElementById("modalAvisoMac");
+
+    function abrirAvisoMac() {
+      modalAvisoMac.classList.remove("hidden");
+    }
+
+    function cerrarAvisoMac() {
+      modalAvisoMac.classList.add("hidden");
+    }
+
+    descripcionInput.addEventListener("focus", () => {
+      if (!avisoMacMostrado) {
+        avisoMacMostrado = true;
+        abrirAvisoMac();
+      }
+    });
+
+    descripcionInput.addEventListener("input", () => {
+      if (!avisoMacMostrado && descripcionInput.value.trim().length === 1) {
+        avisoMacMostrado = true;
+        abrirAvisoMac();
+      }
+    });
+
+    document.getElementById("btnVerGuiaMac").addEventListener("click", abrirAvisoMac);
+    document.getElementById("btnCerrarAvisoMacX").addEventListener("click", cerrarAvisoMac);
+    document.getElementById("btnEntendidoAvisoMac").addEventListener("click", () => {
+      cerrarAvisoMac();
+      descripcionInput.focus();
+    });
+
+    // -----------------------------------------------------------------------
+    // 3. VALIDACIÓN DE TELÉFONO A 10 DÍGITOS Y COMPRESIÓN DE EVIDENCIAS
+    // -----------------------------------------------------------------------
+    telefonoInput.addEventListener("input", () => {
+      telefonoInput.value = telefonoInput.value.replace(/\D/g, "").slice(0, 10);
+      if (telefonoInput.value.length === 10 || telefonoInput.value.length === 0) {
+        errorTelefono.classList.add("hidden");
+      }
+    });
+
+    function comprimirImagen(file) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 900;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
             }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.65);
+            resolve({
+              nombre: file.name,
+              tipo: "imagen",
+              mime: "image/jpeg",
+              dataUrl
+            });
+          };
+          img.onerror = () => resolve(null);
+          img.src = e.target.result;
         };
+        reader.readAsDataURL(file);
+      });
+    }
 
-        const CLAVE_ADMIN_DEFAULT = 'admin2026';
-
-        // Estado en memoria
-        let archivosSeleccionados = [];
-        let avisoMACMostradoEnSesion = false;
-        let adminAutenticado = false;
-        let filtroTipoActual = 'TODOS';
-        let registroPendienteEliminarId = null;
-
-        // Catálogo oficial de los 32 Estados de la República Mexicana
-        const ESTADOS_MEXICO = [
-            "Aguascalientes", "Baja California", "Baja California Sur", "Campeche",
-            "Chiapas", "Chihuahua", "Ciudad de México", "Coahuila de Zaragoza",
-            "Colima", "Durango", "Estado de México", "Guanajuato", "Guerrero",
-            "Hidalgo", "Jalisco", "Michoacán de Ocampo", "Morelos", "Nayarit",
-            "Nuevo León", "Oaxaca", "Puebla", "Querétaro", "Quintana Roo",
-            "San Luis Potosí", "Sinaloa", "Sonora", "Tabasco", "Tamaulipas",
-            "Tlaxcala", "Veracruz de Ignacio de la Llave", "Yucatán", "Zacatecas"
-        ];
-
-        /* --------------------------------------------------------------------------
-           INICIALIZACIÓN AL CARGAR LA VENTANA
-           -------------------------------------------------------------------------- */
-        window.onload = function () {
-            poblarSelectEstados();
-            configurarEventosFormulario();
+    function leerVideoPequeno(file) {
+      return new Promise((resolve) => {
+        // Firestore admite hasta 1MB por documento; videos mayores se registran como referencia
+        if (file.size > 650 * 1024) {
+          resolve({
+            nombre: file.name,
+            tipo: "video_referencia",
+            mime: file.type,
+            tamanoMB: (file.size / (1024 * 1024)).toFixed(2),
+            dataUrl: null
+          });
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          resolve({
+            nombre: file.name,
+            tipo: "video",
+            mime: file.type,
+            dataUrl: e.target.result
+          });
         };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    }
 
-        function poblarSelectEstados() {
-            const selectEstado = document.getElementById('estado');
-            ESTADOS_MEXICO.forEach(edo => {
-                const option = document.createElement('option');
-                option.value = edo;
-                option.textContent = edo;
-                selectEstado.appendChild(option);
-            });
+    evidenciaInput.addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files || []);
+      archivosProcesados = [];
+      contenedorPreviaArchivos.innerHTML = "";
+
+      if (files.length === 0) {
+        contenedorPreviaArchivos.classList.add("hidden");
+        return;
+      }
+
+      contenedorPreviaArchivos.classList.remove("hidden");
+
+      for (const file of files.slice(0, 4)) {
+        if (file.type.startsWith("image/")) {
+          const comprimida = await comprimirImagen(file);
+          if (comprimida) archivosProcesados.push(comprimida);
+        } else if (file.type.startsWith("video/")) {
+          const vid = await leerVideoPequeno(file);
+          if (vid) archivosProcesados.push(vid);
         }
+      }
 
-        /* --------------------------------------------------------------------------
-           CAMBIO DE VISTAS (PÚBLICA vs ADMINISTRADOR)
-           -------------------------------------------------------------------------- */
-        function cambiarVista(vista) {
-            const seccionPublica = document.getElementById('vista-publica');
-            const seccionAdmin = document.getElementById('vista-admin');
-            const btnPublica = document.getElementById('btn-vista-publica');
-            const btnLogin = document.getElementById('btn-abrir-login');
-            const btnLogout = document.getElementById('btn-cerrar-sesion');
-
-            if (vista === 'admin' && adminAutenticado) {
-                seccionPublica.classList.add('hidden');
-                seccionAdmin.classList.remove('hidden');
-                btnPublica.classList.remove('hidden');
-                btnLogin.classList.add('hidden');
-                btnLogout.classList.remove('hidden');
-                renderizarTablaAdmin();
-            } else {
-                seccionAdmin.classList.add('hidden');
-                seccionPublica.classList.remove('hidden');
-                btnPublica.classList.add('hidden');
-                if (adminAutenticado) {
-                    btnLogin.classList.add('hidden');
-                    btnLogout.classList.remove('hidden');
-                } else {
-                    btnLogin.classList.remove('hidden');
-                    btnLogout.classList.add('hidden');
-                }
-            }
+      archivosProcesados.forEach((item) => {
+        const card = document.createElement("div");
+        card.className = "border border-gray-300 bg-white rounded p-1 text-center overflow-hidden";
+        if (item.tipo === "imagen" && item.dataUrl) {
+          card.innerHTML = `
+            <img src="${item.dataUrl}" alt="${item.nombre}" class="w-full h-14 object-cover rounded mb-1" />
+            <span class="block truncate text-gray-600">${item.nombre}</span>
+          `;
+        } else {
+          card.innerHTML = `
+            <div class="w-full h-14 bg-gray-800 text-white rounded mb-1 flex items-center justify-center font-bold">VIDEO</div>
+            <span class="block truncate text-gray-600">${item.nombre}</span>
+          `;
         }
+        contenedorPreviaArchivos.appendChild(card);
+      });
+    });
 
-        function cerrarSesionAdmin() {
-            adminAutenticado = false;
-            cambiarVista('publica');
-            mostrarToast('Sesión de administrador cerrada.', 'info');
+    // -----------------------------------------------------------------------
+    // 4. GENERACIÓN DE FOLIO SECUENCIAL Y GUARDADO DEL REPORTE
+    // -----------------------------------------------------------------------
+    function generarFolioUnico(tipo) {
+      const prefijo = tipo === "Queja" ? "ANM-Q" : "ANM-C";
+      const anio = new Date().getFullYear();
+      const existentesMismoTipo = registros.filter((r) => r.tipo === tipo).length;
+      const consecutivo = String(existentesMismoTipo + 1).padStart(4, "0");
+      const sufijoAleatorio = Math.floor(10 + Math.random() * 89);
+      return `${prefijo}-${anio}-${consecutivo}-${sufijoAleatorio}`;
+    }
+
+    formQueja.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const tipo = document.querySelector('input[name="tipoRegistro"]:checked').value;
+      const nombre = document.getElementById("nombreReporta").value.trim();
+      const telefono = telefonoInput.value.trim();
+      const estado = document.getElementById("estadoReporta").value;
+      const distrito = document.getElementById("distritoReporta").value.trim();
+      const modulo = document.getElementById("moduloReporta").value.trim();
+      const descripcion = descripcionInput.value.trim();
+
+      if (!/^\d{10}$/.test(telefono)) {
+        errorTelefono.classList.remove("hidden");
+        telefonoInput.focus();
+        return;
+      }
+
+      if (!nombre || !estado || !distrito || !modulo || !descripcion) {
+        alert("Por favor complete todos los campos obligatorios marcados con *.");
+        return;
+      }
+
+      const btnEnviar = document.getElementById("btnEnviarReporte");
+      btnEnviar.disabled = true;
+      btnEnviar.textContent = "Guardando en nube...";
+
+      const ahora = new Date();
+      const fechaFormateada = ahora.toLocaleDateString("es-MX", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      });
+      const horaFormateada = ahora.toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
+
+      const folio = generarFolioUnico(tipo);
+      const nuevoRegistro = {
+        folio,
+        tipo,
+        nombre,
+        telefono,
+        estado,
+        distrito,
+        modulo,
+        descripcion,
+        evidencias: archivosProcesados,
+        fecha: fechaFormateada,
+        hora: horaFormateada,
+        timestamp: Date.now()
+      };
+
+      let guardadoEnNube = false;
+      try {
+        await addDoc(collection(db, COLECCION_QUEJAS), nuevoRegistro);
+        guardadoEnNube = true;
+      } catch (err) {
+        console.warn("Guardado en respaldo local por restricción de red/reglas:", err);
+        nuevoRegistro.id = "local_" + Date.now();
+        registros.unshift(nuevoRegistro);
+        guardarRespaldoLocal(registros);
+      }
+
+      // Mostrar modal de folio generado
+      document.getElementById("textoFolioGenerado").textContent = folio;
+      document.getElementById("detalleSyncFolio").textContent = guardadoEnNube
+        ? "Sincronizado en tiempo real con la base de datos central ANM."
+        : "Guardado localmente en el dispositivo (verifique reglas de Firestore para sincronizar).";
+      document.getElementById("modalFolioExito").classList.remove("hidden");
+
+      // Limpiar formulario
+      formQueja.reset();
+      archivosProcesados = [];
+      contenedorPreviaArchivos.innerHTML = "";
+      contenedorPreviaArchivos.classList.add("hidden");
+      avisoMacMostrado = false;
+      btnEnviar.disabled = false;
+      btnEnviar.textContent = "Enviar y Generar Folio";
+    });
+
+    document.getElementById("btnCopiarFolio").addEventListener("click", () => {
+      const folio = document.getElementById("textoFolioGenerado").textContent;
+      navigator.clipboard?.writeText(folio);
+      document.getElementById("btnCopiarFolio").textContent = "¡Copiado!";
+      setTimeout(() => {
+        document.getElementById("btnCopiarFolio").textContent = "Copiar Folio";
+      }, 1500);
+    });
+
+    document.getElementById("btnCerrarFolioExito").addEventListener("click", () => {
+      document.getElementById("modalFolioExito").classList.add("hidden");
+    });
+
+    // -----------------------------------------------------------------------
+    // 5. ACCESO Y PANEL DE ADMINISTRADOR (BUSCADOR, VISOR, BORRADO Y EXCEL)
+    // -----------------------------------------------------------------------
+    const vistaCaptura = document.getElementById("vistaCaptura");
+    const vistaAdmin = document.getElementById("vistaAdmin");
+    const modalLoginAdmin = document.getElementById("modalLoginAdmin");
+    const btnAbrirLoginAdmin = document.getElementById("btnAbrirLoginAdmin");
+    const btnCerrarSesionAdmin = document.getElementById("btnCerrarSesionAdmin");
+
+    btnAbrirLoginAdmin.addEventListener("click", () => {
+      document.getElementById("claveAdminInput").value = "";
+      document.getElementById("errorLoginAdmin").classList.add("hidden");
+      modalLoginAdmin.classList.remove("hidden");
+      setTimeout(() => document.getElementById("claveAdminInput").focus(), 100);
+    });
+
+    function cerrarModalLogin() {
+      modalLoginAdmin.classList.add("hidden");
+    }
+
+    document.getElementById("btnCerrarLoginX").addEventListener("click", cerrarModalLogin);
+    document.getElementById("btnCancelarLogin").addEventListener("click", cerrarModalLogin);
+
+    document.getElementById("formLoginAdmin").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const clave = document.getElementById("claveAdminInput").value;
+      if (clave === CLAVE_ADMIN) {
+        cerrarModalLogin();
+        vistaCaptura.classList.add("hidden");
+        vistaAdmin.classList.remove("hidden");
+        btnAbrirLoginAdmin.classList.add("hidden");
+        btnCerrarSesionAdmin.classList.remove("hidden");
+        renderizarPanelAdmin();
+      } else {
+        document.getElementById("errorLoginAdmin").classList.remove("hidden");
+      }
+    });
+
+    btnCerrarSesionAdmin.addEventListener("click", () => {
+      vistaAdmin.classList.add("hidden");
+      vistaCaptura.classList.remove("hidden");
+      btnCerrarSesionAdmin.classList.add("hidden");
+      btnAbrirLoginAdmin.classList.remove("hidden");
+    });
+
+    // Buscador y filtro
+    const buscadorAdmin = document.getElementById("buscadorAdmin");
+    const filtroTipoAdmin = document.getElementById("filtroTipoAdmin");
+
+    buscadorAdmin.addEventListener("input", renderizarPanelAdmin);
+    filtroTipoAdmin.addEventListener("change", renderizarPanelAdmin);
+    document.getElementById("btnLimpiarFiltros").addEventListener("click", () => {
+      buscadorAdmin.value = "";
+      filtroTipoAdmin.value = "TODOS";
+      renderizarPanelAdmin();
+    });
+
+    function escaparHTML(texto) {
+      const div = document.createElement("div");
+      div.textContent = texto || "";
+      return div.innerHTML;
+    }
+
+    function renderizarPanelAdmin() {
+      const total = registros.length;
+      const quejasCount = registros.filter((r) => r.tipo === "Queja").length;
+      const comentariosCount = registros.filter((r) => r.tipo === "Comentario").length;
+
+      document.getElementById("statTotal").textContent = total;
+      document.getElementById("statQuejas").textContent = quejasCount;
+      document.getElementById("statComentarios").textContent = comentariosCount;
+
+      const termino = buscadorAdmin.value.trim().toLowerCase();
+      const filtroTipo = filtroTipoAdmin.value;
+
+      const filtrados = registros.filter((r) => {
+        const coincideTipo = filtroTipo === "TODOS" || r.tipo === filtroTipo;
+        if (!coincideTipo) return false;
+        if (!termino) return true;
+
+        const textoBusqueda = [
+          r.folio,
+          r.tipo,
+          r.nombre,
+          r.telefono,
+          r.estado,
+          r.distrito,
+          r.modulo,
+          r.descripcion,
+          r.fecha
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return textoBusqueda.includes(termino);
+      });
+
+      const tbody = document.getElementById("tablaRegistrosBody");
+      if (filtrados.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="p-4 text-center text-gray-500">
+              No se encontraron reportes que coincidan con los criterios actuales.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtrados
+        .map((r) => {
+          const badgeTipo =
+            r.tipo === "Queja"
+              ? `<span class="px-1.5 py-0.5 rounded bg-gray-800 text-white font-bold uppercase">Queja</span>`
+              : `<span class="px-1.5 py-0.5 rounded bg-gray-200 text-gray-800 border border-gray-400 font-bold uppercase">Comentario</span>`;
+
+          const numEvidencias = Array.isArray(r.evidencias) ? r.evidencias.length : 0;
+          const badgeEvidencia =
+            numEvidencias > 0
+              ? `<span class="px-1.5 py-0.5 rounded bg-gray-100 border border-gray-300 font-semibold">${numEvidencias} adjunto(s)</span>`
+              : `<span class="text-gray-400">Sin archivo</span>`;
+
+          return `
+            <tr class="hover:bg-gray-50 align-top">
+              <td class="p-2 font-bold text-gray-900 whitespace-nowrap">${escaparHTML(r.folio)}</td>
+              <td class="p-2 whitespace-nowrap">${badgeTipo}</td>
+              <td class="p-2 text-gray-600 whitespace-nowrap">${escaparHTML(r.fecha)}<br/>${escaparHTML(r.hora)}</td>
+              <td class="p-2">
+                <strong class="text-gray-900 block">${escaparHTML(r.nombre)}</strong>
+                <span class="text-gray-600">Tel: ${escaparHTML(r.telefono)}</span>
+              </td>
+              <td class="p-2">
+                <strong class="text-gray-800 block">${escaparHTML(r.estado)}</strong>
+                <span class="text-gray-600 block">Distrito: ${escaparHTML(r.distrito)}</span>
+                <span class="text-gray-500 block">Módulo: ${escaparHTML(r.modulo)}</span>
+              </td>
+              <td class="p-2 max-w-xs">
+                <p class="line-clamp-2 text-gray-700">${escaparHTML(r.descripcion)}</p>
+              </td>
+              <td class="p-2 text-center whitespace-nowrap">${badgeEvidencia}</td>
+              <td class="p-2 text-right whitespace-nowrap space-x-1">
+                <button type="button" data-ver="${r.id}" class="btn-anm-secondary !py-1 !px-2">Ver Escrito</button>
+                <button type="button" data-borrar="${r.id}" class="btn-anm-secondary !py-1 !px-2 !text-red-700 !border-red-300 hover:!bg-red-50">Eliminar</button>
+              </td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      // Eventos de fila
+      tbody.querySelectorAll("[data-ver]").forEach((btn) => {
+        btn.addEventListener("click", () => abrirVisorEscrito(btn.getAttribute("data-ver")));
+      });
+
+      tbody.querySelectorAll("[data-borrar]").forEach((btn) => {
+        btn.addEventListener("click", () => solicitarEliminacion(btn.getAttribute("data-borrar")));
+      });
+    }
+
+    // Visor completo de escrito
+    const modalDetalleEscrito = document.getElementById("modalDetalleEscrito");
+
+    function abrirVisorEscrito(id) {
+      const reg = registros.find((item) => item.id === id);
+      if (!reg) return;
+      registroSeleccionadoId = id;
+
+      document.getElementById("detalleModalTitulo").textContent = `${reg.tipo.toUpperCase()} · FOLIO ${reg.folio}`;
+
+      let htmlEvidencias = `<p class="text-gray-500">No se adjuntaron fotografías ni videos en este reporte.</p>`;
+      if (Array.isArray(reg.evidencias) && reg.evidencias.length > 0) {
+        htmlEvidencias = `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">`;
+        reg.evidencias.forEach((ev) => {
+          if (ev.tipo === "imagen" && ev.dataUrl) {
+            htmlEvidencias += `
+              <div class="border border-gray-300 rounded p-1.5 bg-gray-50">
+                <img src="${ev.dataUrl}" alt="${escaparHTML(ev.nombre)}" class="w-full max-h-48 object-contain rounded bg-black mb-1" />
+                <div class="flex items-center justify-between">
+                  <span class="truncate text-gray-600">${escaparHTML(ev.nombre)}</span>
+                  <a href="${ev.dataUrl}" download="${escaparHTML(ev.nombre)}" class="underline font-bold text-gray-800 ml-1">Descargar</a>
+                </div>
+              </div>
+            `;
+          } else if (ev.tipo === "video" && ev.dataUrl) {
+            htmlEvidencias += `
+              <div class="border border-gray-300 rounded p-1.5 bg-gray-50">
+                <video src="${ev.dataUrl}" controls class="w-full max-h-48 rounded bg-black mb-1"></video>
+                <span class="truncate block text-gray-600">${escaparHTML(ev.nombre)}</span>
+              </div>
+            `;
+          } else {
+            htmlEvidencias += `
+              <div class="border border-gray-300 rounded p-2 bg-gray-50">
+                <strong class="block text-gray-800">Archivo de Video Adjunto:</strong>
+                <span class="text-gray-600">${escaparHTML(ev.nombre)} (${ev.tamanoMB || ""} MB)</span>
+              </div>
+            `;
+          }
+        });
+        htmlEvidencias += `</div>`;
+      }
+
+      document.getElementById("detalleModalCuerpo").innerHTML = `
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-gray-50 p-2 rounded border border-gray-200">
+          <div><span class="text-gray-500 block">Folio Oficial:</span><strong>${escaparHTML(reg.folio)}</strong></div>
+          <div><span class="text-gray-500 block">Tipo:</span><strong>${escaparHTML(reg.tipo)}</strong></div>
+          <div><span class="text-gray-500 block">Fecha y Hora:</span><strong>${escaparHTML(reg.fecha)} ${escaparHTML(reg.hora)}</strong></div>
+          <div><span class="text-gray-500 block">Reportante:</span><strong>${escaparHTML(reg.nombre)}</strong></div>
+          <div><span class="text-gray-500 block">Teléfono (10 dígitos):</span><strong>${escaparHTML(reg.telefono)}</strong></div>
+          <div><span class="text-gray-500 block">Entidad Federativa:</span><strong>${escaparHTML(reg.estado)}</strong></div>
+          <div><span class="text-gray-500 block">Distrito:</span><strong>${escaparHTML(reg.distrito)}</strong></div>
+          <div class="col-span-2"><span class="text-gray-500 block">Módulo / Área Adscrita:</span><strong>${escaparHTML(reg.modulo)}</strong></div>
+        </div>
+
+        <div>
+          <span class="font-bold text-gray-800 uppercase block mb-1">Escrito Íntegro:</span>
+          <div class="p-2.5 bg-white border border-gray-300 rounded whitespace-pre-wrap text-gray-900 leading-relaxed">${escaparHTML(reg.descripcion)}</div>
+        </div>
+
+        <div>
+          <span class="font-bold text-gray-800 uppercase block mb-1">Evidencia Multimedia:</span>
+          ${htmlEvidencias}
+        </div>
+      `;
+
+      modalDetalleEscrito.classList.remove("hidden");
+    }
+
+    function cerrarVisorEscrito() {
+      modalDetalleEscrito.classList.add("hidden");
+      registroSeleccionadoId = null;
+    }
+
+    document.getElementById("btnCerrarDetalleX").addEventListener("click", cerrarVisorEscrito);
+    document.getElementById("btnCerrarDetalle").addEventListener("click", cerrarVisorEscrito);
+    document.getElementById("btnEliminarDesdeDetalle").addEventListener("click", () => {
+      if (registroSeleccionadoId) {
+        const id = registroSeleccionadoId;
+        cerrarVisorEscrito();
+        solicitarEliminacion(id);
+      }
+    });
+
+    // Confirmación y borrado en Firebase + Local
+    const modalConfirmarEliminar = document.getElementById("modalConfirmarEliminar");
+
+    function solicitarEliminacion(id) {
+      const reg = registros.find((item) => item.id === id);
+      if (!reg) return;
+      registroAEliminar = reg;
+      document.getElementById("folioEliminarTexto").textContent = reg.folio;
+      modalConfirmarEliminar.classList.remove("hidden");
+    }
+
+    function cerrarModalEliminar() {
+      modalConfirmarEliminar.classList.add("hidden");
+      registroAEliminar = null;
+    }
+
+    document.getElementById("btnCancelarEliminar").addEventListener("click", cerrarModalEliminar);
+
+    document.getElementById("btnConfirmarEliminar").addEventListener("click", async () => {
+      if (!registroAEliminar) return;
+      const target = registroAEliminar;
+      cerrarModalEliminar();
+
+      try {
+        if (!String(target.id).startsWith("local_")) {
+          await deleteDoc(doc(db, COLECCION_QUEJAS, target.id));
         }
-
-        /* --------------------------------------------------------------------------
-           MANEJO DE EVIDENCIAS MULTIMEDIA (FOTOS Y VIDEOS)
-           -------------------------------------------------------------------------- */
-        function manejarSeleccionArchivos(e) {
-            const files = Array.from(e.target.files);
-            if (!files.length) return;
-
-            files.forEach(file => {
-                if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
-                    mostrarToast(`Archivo no soportado: ${file.name}`, 'warning');
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = (ev) => {
-                    const dataUrlGuardar = file.size <= 3.5 * 1024 * 1024 ? ev.target.result : null;
-                    archivosSeleccionados.push({
-                        nombre: file.name,
-                        tipo: file.type,
-                        tamano: formatearBytes(file.size),
-                        dataUrl: dataUrlGuardar,
-                        previewUrl: ev.target.result
-                    });
-                    renderizarPreviewsEvidencias();
-                };
-                reader.readAsDataURL(file);
-            });
-
-            e.target.value = '';
-        }
-
-        function renderizarPreviewsEvidencias() {
-            const contenedor = document.getElementById('preview-evidencias');
-            contenedor.innerHTML = '';
-
-            archivosSeleccionados.forEach((archivo, idx) => {
-                const card = document.createElement('div');
-                card.className = 'relative bg-white border border-slate-300 rounded p-1.5 flex flex-col items-center text-center shadow-sm';
-
-                let mediaHtml = '';
-                if (archivo.tipo.startsWith('image/')) {
-                    mediaHtml = `<img src="${archivo.previewUrl}" alt="${escaparHTML(archivo.nombre)}" class="w-full h-16 object-cover rounded mb-1">`;
-                } else {
-                    mediaHtml = `
-                        <div class="w-full h-16 bg-slate-800 text-white rounded mb-1 flex flex-col items-center justify-center">
-                            <i class="fa-solid fa-video mb-1" style="font-size: 12px !important;"></i>
-                            <span>VIDEO</span>
-                        </div>`;
-                }
-
-                card.innerHTML = `
-                    ${mediaHtml}
-                    <div class="w-full truncate font-semibold text-slate-700" title="${escaparHTML(archivo.nombre)}">${escaparHTML(archivo.nombre)}</div>
-                    <div class="text-slate-400">${archivo.tamano}</div>
-                    <button type="button" onclick="eliminarArchivoSeleccionado(${idx})" class="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-red-600 text-white flex items-center justify-center shadow" title="Quitar archivo">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                `;
-                contenedor.appendChild(card);
-            });
-        }
-
-        function eliminarArchivoSeleccionado(indice) {
-            archivosSeleccionados.splice(indice, 1);
-            renderizarPreviewsEvidencias();
-        }
-
-        function limpiarFormulario() {
-            document.getElementById('form-captura').reset();
-            archivosSeleccionados = [];
-            renderizarPreviewsEvidencias();
-            const contadorTel = document.getElementById('contador-tel');
-            contadorTel.textContent = '0/10';
-            contadorTel.classList.remove('text-emerald-600');
-            contadorTel.classList.add('text-slate-400');
-        }
-
-        /* --------------------------------------------------------------------------
-           GUARDADO Y VALIDACIÓN DEL REPORTE CON FOLIO SECUENCIAL ANM
-           -------------------------------------------------------------------------- */
-        function procesarEnvioReporte(e) {
-            e.preventDefault();
-
-            const nombre = document.getElementById('nombre').value.trim();
-            const telefono = document.getElementById('telefono').value.trim();
-            const estado = document.getElementById('estado').value;
-            const distrito = document.getElementById('distrito').value.trim();
-            const modulo = document.getElementById('modulo').value.trim();
-            const tipo = document.querySelector('input[name="tipo_reporte"]:checked').value;
-            const descripcion = document.getElementById('descripcion').value.trim();
-
-            if (!nombre) {
-                mostrarToast('Por favor ingrese el nombre de la persona que reporta.', 'error');
-                document.getElementById('nombre').focus();
-                return;
-            }
-            if (!/^\d{10}$/.test(telefono)) {
-                mostrarToast('El teléfono debe contener exactamente 10 dígitos numéricos.', 'error');
-                document.getElementById('telefono').focus();
-                return;
-            }
-            if (!estado) {
-                mostrarToast('Seleccione el Estado al que pertenece.', 'error');
-                document.getElementById('estado').focus();
-                return;
-            }
-            if (!distrito) {
-                mostrarToast('Ingrese el Distrito correspondiente.', 'error');
-                document.getElementById('distrito').focus();
-                return;
-            }
-            if (!modulo) {
-                mostrarToast('Ingrese el Módulo o Área adscrita.', 'error');
-                document.getElementById('modulo').focus();
-                return;
-            }
-            if (descripcion.length < 10) {
-                mostrarToast('Por favor redacte una descripción más detallada (mínimo 10 caracteres).', 'error');
-                document.getElementById('descripcion').focus();
-                return;
-            }
-
-            const ahora = new Date();
-            const folio = StorageService.generarFolioSecuencial(tipo);
-
-            const nuevoRegistro = {
-                id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
-                folio: folio,
-                fechaISO: ahora.toISOString(),
-                fechaLegible: ahora.toLocaleString('es-MX', {
-                    year: 'numeric', month: '2-digit', day: '2-digit',
-                    hour: '2-digit', minute: '2-digit'
-                }),
-                nombre: nombre,
-                telefono: telefono,
-                estado: estado,
-                distrito: distrito,
-                modulo: modulo,
-                tipo: tipo,
-                descripcion: descripcion,
-                evidencias: archivosSeleccionados.map(a => ({
-                    nombre: a.nombre,
-                    tipo: a.tipo,
-                    tamano: a.tamano,
-                    dataUrl: a.dataUrl
-                }))
-            };
-
-            try {
-                StorageService.guardar(nuevoRegistro);
-                limpiarFormulario();
-
-                document.getElementById('exito-tipo').textContent = tipo.toLowerCase();
-                document.getElementById('exito-folio').textContent = folio;
-                abrirModal('modal-exito');
-            } catch (err) {
-                mostrarToast('Error al guardar: el almacenamiento local está lleno. Intente con archivos más ligeros.', 'error');
-            }
-        }
-
-        function copiarFolioGenerado() {
-            const folioTexto = document.getElementById('exito-folio').textContent;
-            const tempInput = document.createElement('input');
-            tempInput.value = folioTexto;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            mostrarToast(`Folio ${folioTexto} copiado al portapapeles.`, 'success');
-        }
-
-        function configurarEventosFormulario() {
-            // 1. Validación estricta de teléfono a 10 dígitos numéricos
-            const inputTel = document.getElementById('telefono');
-            const contadorTel = document.getElementById('contador-tel');
-            inputTel.addEventListener('input', (e) => {
-                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
-                contadorTel.textContent = `${e.target.value.length}/10`;
-                if (e.target.value.length === 10) {
-                    contadorTel.classList.replace('text-slate-400', 'text-emerald-600');
-                } else {
-                    contadorTel.classList.replace('text-emerald-600', 'text-slate-400');
-                }
-            });
-
-            // 2. Ventana flotante para personal de Módulos de Atención Ciudadana al empezar a escribir
-            const textareaDesc = document.getElementById('descripcion');
-            const dispararAvisoMAC = () => {
-                if (!avisoMACMostradoEnSesion) {
-                    avisoMACMostradoEnSesion = true;
-                    mostrarGuiaMAC(false);
-                }
-            };
-            textareaDesc.addEventListener('focus', dispararAvisoMAC);
-            textareaDesc.addEventListener('input', dispararAvisoMAC);
-
-            // 3. Manejo de carga de fotografías y videos
-            const inputEvidencias = document.getElementById('evidencias');
-            inputEvidencias.addEventListener('change', manejarSeleccionArchivos);
-
-            // 4. Envío del formulario principal
-            document.getElementById('form-captura').addEventListener('submit', procesarEnvioReporte);
-
-            // 5. Envío del formulario de Login Admin
-            document.getElementById('form-login').addEventListener('submit', (e) => {
-                e.preventDefault();
-                const pass = document.getElementById('admin-pass').value.trim();
-                const errorDiv = document.getElementById('login-error');
-
-                if (pass === CLAVE_ADMIN_DEFAULT) {
-                    adminAutenticado = true;
-                    errorDiv.classList.add('hidden');
-                    document.getElementById('admin-pass').value = '';
-                    cerrarModal('modal-login');
-                    cambiarVista('admin');
-                    mostrarToast('Sesión de administrador ANM iniciada.', 'success');
-                } else {
-                    errorDiv.classList.remove('hidden');
-                }
-            });
-        }
-
-        /* --------------------------------------------------------------------------
-           PANEL DE ADMINISTRADOR: TABLA, BUSCADOR EN TIEMPO REAL Y VISOR ÍNTEGRO
-           -------------------------------------------------------------------------- */
-        function seleccionarFiltroRapido(tipo) {
-            filtroTipoActual = tipo;
-            document.querySelectorAll('.filtro-pill').forEach(btn => {
-                if (btn.dataset.filtro === tipo) {
-                    btn.className = 'filtro-pill btn-institucional py-1.5 px-2.5';
-                } else {
-                    btn.className = 'filtro-pill btn-secundario py-1.5 px-2.5';
-                }
-            });
-            renderizarTablaAdmin();
-        }
-
-        function renderizarTablaAdmin() {
-            if (!adminAutenticado) return;
-
-            const todos = StorageService.obtenerTodos();
-            const termino = document.getElementById('filtro-busqueda').value.toLowerCase().trim();
-
-            const totalQuejas = todos.filter(r => r.tipo === 'Queja').length;
-            const totalComentarios = todos.filter(r => r.tipo === 'Comentario').length;
-            const totalConEvidencia = todos.filter(r => r.evidencias && r.evidencias.length > 0).length;
-
-            document.getElementById('stat-total').textContent = todos.length;
-            document.getElementById('stat-quejas').textContent = totalQuejas;
-            document.getElementById('stat-comentarios').textContent = totalComentarios;
-            document.getElementById('stat-evidencias').textContent = totalConEvidencia;
-
-            document.getElementById('pill-count-todos').textContent = todos.length;
-            document.getElementById('pill-count-quejas').textContent = totalQuejas;
-            document.getElementById('pill-count-comentarios').textContent = totalComentarios;
-
-            const filtrados = todos.filter(r => {
-                const coincideTipo = filtroTipoActual === 'TODOS' || r.tipo === filtroTipoActual;
-                const textoBusqueda = `${r.folio} ${r.nombre} ${r.telefono} ${r.estado} ${r.distrito} ${r.modulo} ${r.descripcion}`.toLowerCase();
-                const coincideTexto = !termino || textoBusqueda.includes(termino);
-                return coincideTipo && coincideTexto;
-            });
-
-            document.getElementById('contador-resultados').textContent = `Mostrando ${filtrados.length} de ${todos.length} registros`;
-
-            const tbody = document.getElementById('tabla-reportes-body');
-            const estadoVacio = document.getElementById('tabla-vacia');
-            tbody.innerHTML = '';
-
-            if (filtrados.length === 0) {
-                estadoVacio.classList.remove('hidden');
-                return;
-            }
-            estadoVacio.classList.add('hidden');
-
-            filtrados.forEach(reg => {
-                const tr = document.createElement('tr');
-                const badgeClass = reg.tipo === 'Queja' ? 'badge-queja' : 'badge-comentario';
-                const numEvidencias = reg.evidencias ? reg.evidencias.length : 0;
-                const extracto = reg.descripcion.length > 85
-                    ? reg.descripcion.slice(0, 85) + '...'
-                    : reg.descripcion;
-
-                const badgeEvidencia = numEvidencias > 0
-                    ? `<span class="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-300 font-semibold">
-                           <i class="fa-solid fa-paperclip mr-0.5"></i>${numEvidencias}
-                       </span>`
-                    : `<span class="text-slate-400">0</span>`;
-
-                tr.innerHTML = `
-                    <td class="font-bold text-[#1f2937] whitespace-nowrap">${reg.folio}</td>
-                    <td><span class="${badgeClass}">${reg.tipo.toUpperCase()}</span></td>
-                    <td class="whitespace-nowrap text-slate-600">${reg.fechaLegible}</td>
-                    <td class="font-semibold text-slate-900 whitespace-nowrap">${escaparHTML(reg.nombre)}</td>
-                    <td class="whitespace-nowrap text-slate-700">${escaparHTML(reg.telefono)}</td>
-                    <td class="whitespace-nowrap">
-                        <div class="font-semibold text-slate-800">${escaparHTML(reg.estado)}</div>
-                        <div class="text-slate-500">Distrito: ${escaparHTML(reg.distrito)}</div>
-                    </td>
-                    <td class="text-slate-700 whitespace-nowrap">${escaparHTML(reg.modulo)}</td>
-                    <td class="min-w-[180px] max-w-xs text-slate-600">${escaparHTML(extracto)}</td>
-                    <td class="whitespace-nowrap text-center">${badgeEvidencia}</td>
-                    <td class="text-center whitespace-nowrap">
-                        <div class="inline-flex items-center gap-1">
-                            <button type="button" onclick="abrirEscritoCompleto('${reg.id}')" class="btn-secundario text-[#1f2937] border-slate-300 py-1 px-2" title="Leer escrito completo y evidencias">
-                                <i class="fa-solid fa-file-lines"></i> Ver Escrito
-                            </button>
-                            <button type="button" onclick="solicitarEliminarRegistro('${reg.id}')" class="btn-secundario text-red-700 border-red-200 hover:bg-red-50 py-1 px-2" title="Eliminar registro">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        function limpiarFiltrosAdmin() {
-            document.getElementById('filtro-busqueda').value = '';
-            seleccionarFiltroRapido('TODOS');
-        }
-
-        function solicitarEliminarRegistro(id) {
-            const reg = StorageService.obtenerTodos().find(r => r.id === id);
-            if (!reg) return;
-            registroPendienteEliminarId = id;
-            document.getElementById('eliminar-folio-texto').textContent = reg.folio;
-            abrirModal('modal-confirmar-eliminar');
-        }
-
-        function ejecutarEliminacionConfirmada() {
-            if (!registroPendienteEliminarId) return;
-            StorageService.eliminar(registroPendienteEliminarId);
-            registroPendienteEliminarId = null;
-            cerrarModal('modal-confirmar-eliminar');
-            cerrarModal('modal-escrito-completo');
-            renderizarTablaAdmin();
-            mostrarToast('Registro eliminado permanentemente.', 'info');
-        }
-
-        function abrirEscritoCompleto(id) {
-            const reg = StorageService.obtenerTodos().find(r => r.id === id);
-            if (!reg) return;
-
-            document.getElementById('detalle-folio-titulo').textContent = `Expediente: ${reg.folio}`;
-            const badge = document.getElementById('detalle-badge-tipo');
-            badge.textContent = reg.tipo.toUpperCase();
-            badge.className = reg.tipo === 'Queja' ? 'badge-queja' : 'badge-comentario';
-
-            document.getElementById('detalle-fecha').textContent = reg.fechaLegible;
-            document.getElementById('detalle-nombre').textContent = reg.nombre;
-            document.getElementById('detalle-telefono').textContent = reg.telefono;
-            document.getElementById('detalle-estado').textContent = reg.estado;
-            document.getElementById('detalle-distrito').textContent = reg.distrito;
-            document.getElementById('detalle-modulo').textContent = reg.modulo;
-            document.getElementById('detalle-descripcion').textContent = reg.descripcion;
-
-            const btnEliminarModal = document.getElementById('btn-detalle-eliminar');
-            btnEliminarModal.onclick = () => solicitarEliminarRegistro(reg.id);
-
-            const contenedorEvidencias = document.getElementById('detalle-evidencias-grid');
-            contenedorEvidencias.innerHTML = '';
-
-            if (!reg.evidencias || reg.evidencias.length === 0) {
-                contenedorEvidencias.innerHTML = `
-                    <div class="col-span-full bg-slate-50 border border-slate-200 rounded p-3 text-slate-500 text-center">
-                        Este registro no contiene fotografías ni videos adjuntos.
-                    </div>`;
-            } else {
-                reg.evidencias.forEach(ev => {
-                    const item = document.createElement('div');
-                    item.className = 'bg-slate-50 p-2 rounded border border-slate-300 flex flex-col gap-1.5';
-
-                    if (ev.dataUrl && ev.tipo.startsWith('image/')) {
-                        item.innerHTML = `
-                            <img src="${ev.dataUrl}" alt="${escaparHTML(ev.nombre)}" class="w-full max-h-56 object-contain bg-black/5 rounded">
-                            <div class="font-semibold text-slate-800 truncate">${escaparHTML(ev.nombre)} (${ev.tamano || ''})</div>
-                        `;
-                    } else if (ev.dataUrl && ev.tipo.startsWith('video/')) {
-                        item.innerHTML = `
-                            <video src="${ev.dataUrl}" controls class="w-full max-h-56 bg-black rounded"></video>
-                            <div class="font-semibold text-slate-800 truncate">${escaparHTML(ev.nombre)} (${ev.tamano || ''})</div>
-                        `;
-                    } else {
-                        item.innerHTML = `
-                            <div class="p-3 bg-white text-center rounded text-slate-600 border border-slate-200">
-                                <i class="fa-solid fa-file-video mb-1" style="font-size: 13px !important;"></i>
-                                <div>Archivo adjunto: <strong>${escaparHTML(ev.nombre)}</strong> (${ev.tamano || 'N/A'})</div>
-                            </div>
-                        `;
-                    }
-                    contenedorEvidencias.appendChild(item);
-                });
-            }
-
-            abrirModal('modal-escrito-completo');
-        }
-
-        /* --------------------------------------------------------------------------
-           EXPORTACIÓN A EXCEL CON HOJAS SEPARADAS ("Quejas" y "Comentarios")
-           -------------------------------------------------------------------------- */
-        function exportarExcelSeparado() {
-            if (!adminAutenticado) return;
-
-            const registros = StorageService.obtenerTodos();
-            if (registros.length === 0) {
-                mostrarToast('No hay registros disponibles para exportar a Excel.', 'warning');
-                return;
-            }
-
-            const listaQuejas = registros.filter(r => r.tipo === 'Queja');
-            const listaComentarios = registros.filter(r => r.tipo === 'Comentario');
-
-            const mapearFilaExcel = (r) => ({
-                "Folio": r.folio,
-                "Fecha y Hora": r.fechaLegible,
-                "Clasificación": r.tipo,
-                "Nombre de quien Reporta": r.nombre,
-                "Teléfono (10 Dígitos)": r.telefono,
-                "Estado": r.estado,
-                "Distrito": r.distrito,
-                "Módulo o Área Adscrita": r.modulo,
-                "Descripción Detallada": r.descripcion,
-                "Cantidad Evidencias": r.evidencias ? r.evidencias.length : 0,
-                "Archivos de Evidencia": (r.evidencias && r.evidencias.length > 0)
-                    ? r.evidencias.map(e => e.nombre).join(' | ')
-                    : 'Sin evidencia adjunta'
-            });
-
-            const datosHojaQuejas = listaQuejas.length > 0
-                ? listaQuejas.map(mapearFilaExcel)
-                : [{ "Mensaje": "No se han registrado quejas hasta el momento." }];
-
-            const datosHojaComentarios = listaComentarios.length > 0
-                ? listaComentarios.map(mapearFilaExcel)
-                : [{ "Mensaje": "No se han registrado comentarios hasta el momento." }];
-
-            const wb = XLSX.utils.book_new();
-            const wsQuejas = XLSX.utils.json_to_sheet(datosHojaQuejas);
-            const wsComentarios = XLSX.utils.json_to_sheet(datosHojaComentarios);
-
-            const anchosColumnas = [
-                { wch: 18 }, { wch: 18 }, { wch: 14 }, { wch: 28 },
-                { wch: 16 }, { wch: 20 }, { wch: 18 }, { wch: 22 },
-                { wch: 50 }, { wch: 15 }, { wch: 30 }
-            ];
-            wsQuejas['!cols'] = anchosColumnas;
-            wsComentarios['!cols'] = anchosColumnas;
-
-            XLSX.utils.book_append_sheet(wb, wsQuejas, "Quejas");
-            XLSX.utils.book_append_sheet(wb, wsComentarios, "Comentarios");
-
-            const fechaArchivo = new Date().toISOString().slice(0, 10);
-            XLSX.writeFile(wb, `Reporte_ANM_Quejas_y_Comentarios_${fechaArchivo}.xlsx`);
-            mostrarToast(`Excel generado: ${listaQuejas.length} quejas y ${listaComentarios.length} comentarios separados.`, 'success');
-        }
-
-        /* --------------------------------------------------------------------------
-           DATOS DE DEMOSTRACIÓN PARA PRUEBAS EN LOCALHOST Y MÓVIL
-           -------------------------------------------------------------------------- */
-        function cargarDatosDemo() {
-            const folioQ = StorageService.generarFolioSecuencial('Queja');
-            const folioC = StorageService.generarFolioSecuencial('Comentario');
-
-            const demoQueja = {
-                id: 'demo-' + Date.now() + '-1',
-                folio: folioQ,
-                fechaISO: new Date().toISOString(),
-                fechaLegible: '22/11/2026, 10:15',
-                nombre: 'Carlos Alberto Mendoza Ruiz',
-                telefono: '8661458920',
-                estado: 'Coahuila de Zaragoza',
-                distrito: 'Distrito 03',
-                modulo: 'MAC 050351 Monclova',
-                tipo: 'Queja',
-                descripcion: 'El sistema de captura biométrica presentó fallas intermitentes durante 45 minutos en la ventanilla 2, generando retraso en la atención de ciudadanos con cita previa. Se solicita revisión técnica preventiva del equipo.',
-                evidencias: []
-            };
-
-            const demoComentario = {
-                id: 'demo-' + Date.now() + '-2',
-                folio: folioC,
-                fechaISO: new Date().toISOString(),
-                fechaLegible: '22/11/2026, 11:40',
-                nombre: 'Laura Patricia Sánchez Gómez',
-                telefono: '5548921034',
-                estado: 'Ciudad de México',
-                distrito: 'Distrito 15',
-                modulo: 'MAC 091552 Benito Juárez',
-                tipo: 'Comentario',
-                descripcion: 'Excelente orientación por parte del personal de recepción y agilización en la entrega de credenciales. Se sugiere mantener el módulo de atención preferente para adultos mayores.',
-                evidencias: []
-            };
-
-            StorageService.guardar(demoComentario);
-            StorageService.guardar(demoQueja);
-            renderizarTablaAdmin();
-            mostrarToast(`Registros de prueba agregados (${folioQ} y ${folioC}).`, 'success');
-        }
-
-        /* --------------------------------------------------------------------------
-           UTILIDADES DE MODALES Y NOTIFICACIONES
-           -------------------------------------------------------------------------- */
-        function toggleGuiaDespliegue() {
-            document.getElementById('panel-guia-despliegue').classList.toggle('hidden');
-        }
-
-        function mostrarGuiaMAC(forzar) {
-            if (forzar) avisoMACMostradoEnSesion = true;
-            abrirModal('modal-guia-mac');
-        }
-
-        function abrirModalLogin() {
-            document.getElementById('login-error').classList.add('hidden');
-            abrirModal('modal-login');
-            setTimeout(() => document.getElementById('admin-pass').focus(), 100);
-        }
-
-        function abrirModal(id) {
-            document.getElementById(id).classList.add('active');
-        }
-
-        function cerrarModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        function mostrarToast(mensaje, tipo = 'info') {
-            const toast = document.getElementById('toast-notificacion');
-            const texto = document.getElementById('toast-mensaje');
-            const icono = document.getElementById('toast-icono');
-
-            texto.textContent = mensaje;
-            icono.className = 'fa-solid';
-            if (tipo === 'error') icono.classList.add('fa-circle-exclamation', 'text-red-400');
-            else if (tipo === 'success') icono.classList.add('fa-circle-check', 'text-emerald-400');
-            else if (tipo === 'warning') icono.classList.add('fa-triangle-exclamation', 'text-amber-400');
-            else icono.classList.add('fa-circle-info', 'text-slate-300');
-
-            toast.classList.remove('hidden');
-            toast.classList.add('flex');
-
-            clearTimeout(window.toastTimer);
-            window.toastTimer = setTimeout(() => {
-                toast.classList.add('hidden');
-                toast.classList.remove('flex');
-            }, 3500);
-        }
-
-        function formatearBytes(bytes) {
-            if (bytes === 0) return '0 B';
-            const k = 1024;
-            const sizes = ['B', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-        }
-
-        function escaparHTML(str) {
-            if (!str) return '';
-            return str.replace(/[&<>'"]/g, tag => ({
-                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-            }[tag]));
-        }
-    </script>
+      } catch (err) {
+        console.warn("Error eliminando en Firestore:", err);
+      }
+
+      registros = registros.filter((r) => r.id !== target.id);
+      guardarRespaldoLocal(registros);
+      renderizarPanelAdmin();
+    });
+
+    // -----------------------------------------------------------------------
+    // 6. EXPORTACIÓN A EXCEL SEPARANDO QUEJAS Y COMENTARIOS EN DOS HOJAS
+    // -----------------------------------------------------------------------
+    document.getElementById("btnExportarExcel").addEventListener("click", () => {
+      if (registros.length === 0) {
+        alert("No hay registros disponibles para exportar a Excel.");
+        return;
+      }
+
+      const mapearFila = (r) => ({
+        "Folio": r.folio,
+        "Tipo": r.tipo,
+        "Fecha": r.fecha,
+        "Hora": r.hora,
+        "Nombre quien reporta": r.nombre,
+        "Teléfono (10 dígitos)": r.telefono,
+        "Estado": r.estado,
+        "Distrito": r.distrito,
+        "Módulo o Área Adscrita": r.modulo,
+        "Descripción Completa": r.descripcion,
+        "Archivos Adjuntos": Array.isArray(r.evidencias) && r.evidencias.length > 0
+          ? r.evidencias.map((e) => e.nombre).join(", ")
+          : "Sin evidencia"
+      });
+
+      const listaQuejas = registros.filter((r) => r.tipo === "Queja").map(mapearFila);
+      const listaComentarios = registros.filter((r) => r.tipo === "Comentario").map(mapearFila);
+
+      const wb = XLSX.utils.book_new();
+
+      const wsQuejas = XLSX.utils.json_to_sheet(
+        listaQuejas.length > 0 ? listaQuejas : [{ "Mensaje": "Sin quejas registradas" }]
+      );
+      const wsComentarios = XLSX.utils.json_to_sheet(
+        listaComentarios.length > 0 ? listaComentarios : [{ "Mensaje": "Sin comentarios registrados" }]
+      );
+
+      // Ajuste de ancho de columnas
+      const anchos = [
+        { wch: 20 }, { wch: 14 }, { wch: 12 }, { wch: 12 },
+        { wch: 28 }, { wch: 18 }, { wch: 20 }, { wch: 18 },
+        { wch: 24 }, { wch: 60 }, { wch: 25 }
+      ];
+      wsQuejas["!cols"] = anchos;
+      wsComentarios["!cols"] = anchos;
+
+      XLSX.utils.book_append_sheet(wb, wsQuejas, "Quejas");
+      XLSX.utils.book_append_sheet(wb, wsComentarios, "Comentarios");
+
+      const fechaArchivo = new Date().toISOString().slice(0, 10);
+      XLSX.writeFile(wb, `Reporte_Integral_ANM_${fechaArchivo}.xlsx`);
+    });
+  </script>
 </body>
 </html>
